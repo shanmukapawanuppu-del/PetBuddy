@@ -71,3 +71,45 @@ export default defineConfig([
   },
 ])
 ```
+
+
+## Running the Project
+
+### Development
+
+```bash
+npm install
+npm run dev
+```
+
+The development server will start at `http://localhost:5173/` (or the port shown in the terminal).
+
+### Production Build
+
+```bash
+npm run build
+```
+
+The compiled static files will be generated in the `dist/` folder.
+
+## Deployment
+
+You can deploy the `dist/` directory to any static hosting provider.
+
+### Vercel
+
+```bash
+npm install -g vercel
+vercel
+```
+
+### Netlify
+
+```bash
+npm install -g netlify-cli
+netlify deploy --prod --dir=dist
+```
+
+### Other Hosts
+
+Upload the contents of `dist/` to your preferred hosting platform (e.g., GitHub Pages, AWS S3, Firebase Hosting).

@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { PawPrint, Menu, X } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,19 +20,6 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    const checkAuth = () => {
-      setIsLoggedIn(localStorage.getItem('isLoggedIn') === 'true');
-    };
-
-    checkAuth();
-    window.addEventListener('storage', checkAuth);
-
-    return () => {
-      window.removeEventListener('storage', checkAuth);
-    };
-  }, [location]);
-
   // Close mobile menu on route change
   useEffect(() => {
     setIsOpen(false);
@@ -42,23 +27,15 @@ const Navbar: React.FC = () => {
 
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    setIsLoggedIn(false);
-    navigate('/');
-  };
-
   const isActive = (path: string) => {
     return location.pathname === path ? 'active-link' : '';
   };
-
-  const logoLink = isLoggedIn ? '/home' : '/';
 
   return (
     <>
       <header className={`navbar-header ${scrolled ? 'scrolled' : ''}`}>
         <div className="container nav-container">
-          <Link to={logoLink} className="logo-area">
+          <Link to="/home" className="logo-area">
             <div className="logo-icon-wrapper animate-float">
               <PawPrint className="logo-icon" size={24} />
             </div>
@@ -66,63 +43,35 @@ const Navbar: React.FC = () => {
           </Link>
 
           <nav className="desktop-nav">
-            {isLoggedIn ? (
-              <>
-                <Link to="/home" className={`nav-link ${isActive('/home')}`}>Home</Link>
-                <Link to="/caregivers" className={`nav-link ${isActive('/caregivers')}`}>Find Caregivers</Link>
-                <a href="/home#features" className="nav-link">Features</a>
-                <a href="/home#testimonials" className="nav-link">Reviews</a>
-                <button 
-                  onClick={handleLogout} 
-                  className="btn btn-secondary btn-nav"
-                  style={{ 
-                    cursor: 'pointer',
-                    background: 'transparent',
-                    border: '1px solid var(--border)',
-                    color: 'var(--text-heading)'
-                  }}
-                >
-                  Log out
-                </button>
-                <Link to="/caregivers" className="btn btn-primary btn-nav">
-                  Find a Pet Sitter
-                </Link>
-              </>
-            ) : null}
+            <Link to="/home" className={`nav-link ${isActive('/home')}`}>Home</Link>
+            <Link to="/caregivers" className={`nav-link ${isActive('/caregivers')}`}>Find Caregivers</Link>
+            <a href="/home#features" className="nav-link">Features</a>
+            <a href="/home#testimonials" className="nav-link">Reviews</a>
+            <Link to="/login" className={`nav-link ${isActive('/login') || isActive('/signup')}`}>Login/Signup</Link>
+            <Link to="/caregivers" className="btn btn-primary btn-nav">
+              Find a Pet Sitter
+            </Link>
           </nav>
 
-          {isLoggedIn && (
-            <button className="mobile-toggle" onClick={toggleMenu} aria-label="Toggle Menu">
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          )}
+          <button className="mobile-toggle" onClick={toggleMenu} aria-label="Toggle Menu">
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </header>
 
       {/* Mobile Drawer */}
-      {isLoggedIn && (
-        <div className={`mobile-drawer ${isOpen ? 'open' : ''}`}>
-          <nav className="mobile-nav">
-            <Link to="/home" className={`mobile-link ${isActive('/home')}`}>Home</Link>
-            <Link to="/caregivers" className={`mobile-link ${isActive('/caregivers')}`}>Find Caregivers</Link>
-            <a href="/home#features" className="mobile-link" onClick={() => setIsOpen(false)}>Features</a>
-            <a href="/home#testimonials" className="mobile-link" onClick={() => setIsOpen(false)}>Reviews</a>
-            <button 
-              onClick={() => {
-                setIsOpen(false);
-                handleLogout();
-              }} 
-              className="btn btn-secondary mobile-cta-btn"
-              style={{ cursor: 'pointer', fontSize: '1rem', padding: '12px' }}
-            >
-              Log out
-            </button>
-            <Link to="/caregivers" className="btn btn-primary mobile-cta-btn">
-              Find a Pet Sitter
-            </Link>
-          </nav>
-        </div>
-      )}
+      <div className={`mobile-drawer ${isOpen ? 'open' : ''}`}>
+        <nav className="mobile-nav">
+          <Link to="/home" className={`mobile-link ${isActive('/home')}`}>Home</Link>
+          <Link to="/caregivers" className={`mobile-link ${isActive('/caregivers')}`}>Find Caregivers</Link>
+          <a href="/home#features" className="mobile-link" onClick={() => setIsOpen(false)}>Features</a>
+          <a href="/home#testimonials" className="mobile-link" onClick={() => setIsOpen(false)}>Reviews</a>
+          <Link to="/login" className={`mobile-link ${isActive('/login') || isActive('/signup')}`}>Login/Signup</Link>
+          <Link to="/caregivers" className="btn btn-primary mobile-cta-btn">
+            Find a Pet Sitter
+          </Link>
+        </nav>
+      </div>
 
       {/* Navbar CSS Styles inside JS component to avoid styling pollution, matching responsive principles */}
       <style>{`

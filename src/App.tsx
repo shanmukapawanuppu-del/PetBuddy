@@ -31,13 +31,13 @@ const App: React.FC = () => {
   return (
     <Router>
       <ScrollToTop />
-      
+
       {/* Global SPA Layout */}
       <Navbar />
-      
+
       <main className="main-content-wrapper">
         <Routes>
-          <Route path="/" element={<Login />} />
+          <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/caregivers" element={<CaregiverListing />} />
           <Route path="/profile/:id" element={<CaregiverProfile />} />

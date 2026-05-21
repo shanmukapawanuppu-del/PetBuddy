@@ -98,9 +98,9 @@ const Home: React.FC = () => {
           </div>
           <div className="hero-image-area">
             <div className="main-hero-image-wrapper">
-              <img 
-                src="https://images.unsplash.com/photo-1415369629372-26f2fe60c467?auto=format&fit=crop&q=80&w=600&h=600" 
-                alt="Cozy golden retriever with owner" 
+              <img
+                src="https://images.unsplash.com/photo-1415369629372-26f2fe60c467?auto=format&fit=crop&q=80&w=600&h=600"
+                alt="Cozy golden retriever with owner"
                 className="main-hero-image"
               />
               <div className="floating-stat-card">
