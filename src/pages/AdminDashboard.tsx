@@ -12,20 +12,20 @@ const mockStats = {
 
 const AdminDashboard: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showStats, setShowStats] = useState(true);
+  const [showStats,] = useState(true);
   const [form, setForm] = useState({ username: '', password: '' });
   // Dummy data for admin tables
-  const [users, setUsers] = useState([
+  const [users] = useState([
     { id: 1, name: 'Alice', email: 'alice@example.com' },
     { id: 2, name: 'Bob', email: 'bob@example.com' },
     { id: 3, name: 'Carol', email: 'carol@example.com' }
   ]);
-  const [sitters, setSitters] = useState([
+  const [sitters,] = useState([
     { id: 1, name: 'Dave', rating: 4.9 },
     { id: 2, name: 'Eve', rating: 4.7 },
     { id: 3, name: 'Frank', rating: 4.5 }
   ]);
-  const [bookings, setBookings] = useState([
+  const [bookings,] = useState([
     { id: 1, user: 'Alice', sitter: 'Dave', date: '2024-01-10' },
     { id: 2, user: 'Bob', sitter: 'Eve', date: '2024-01-12' },
     { id: 3, user: 'Carol', sitter: 'Frank', date: '2024-01-15' }
@@ -107,7 +107,7 @@ const AdminDashboard: React.FC = () => {
                 <td>{u.id}</td>
                 <td>{u.name}</td>
                 <td>{u.email}</td>
-                <td><button className="btn btn-sm btn-danger" onClick={() => deleteUser(u.id)}>Delete</button></td>
+                {/* <td><button className="btn btn-sm btn-danger" onClick={() => deleteUser(u.id)}>Delete</button></td> */}
               </tr>
             ))}
           </tbody>
@@ -126,7 +126,7 @@ const AdminDashboard: React.FC = () => {
                 <td>{s.id}</td>
                 <td>{s.name}</td>
                 <td>{s.rating}</td>
-                <td><button className="btn btn-sm btn-danger" onClick={() => deleteSitter(s.id)}>Delete</button></td>
+                {/* <td><button className="btn btn-sm btn-danger" onClick={() => deleteSitter(s.id)}>Delete</button></td> */}
               </tr>
             ))}
           </tbody>
@@ -146,7 +146,7 @@ const AdminDashboard: React.FC = () => {
                 <td>{b.user}</td>
                 <td>{b.sitter}</td>
                 <td>{b.date}</td>
-                <td><button className="btn btn-sm btn-danger" onClick={() => deleteBooking(b.id)}>Delete</button></td>
+                {/* <td><button className="btn btn-sm btn-danger" onClick={() => deleteBooking(b.id)}>Delete</button></td> */}
               </tr>
             ))}
           </tbody>

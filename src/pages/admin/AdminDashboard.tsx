@@ -16,7 +16,7 @@ const mockSitters = [
 ];
 
 // Helper to style status badges
-const getBadgeStyle = (status) => {
+const getBadgeStyle = (status: string) => {
   switch (status) {
     case 'Active':
     case 'Verified':
@@ -81,7 +81,7 @@ const AdminDashboard: React.FC = () => {
   // Reusable style objects
   const badgeBase = { padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '700' };
   const avatarStyle = { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'grid', placeItems: 'center', fontWeight: 'bold' };
-  const cardStyle = { padding: '24px', backgroundColor: 'white', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' };
+
   const labelStyle = { color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600', marginBottom: '8px' };
   const valueStyle = { fontSize: '1.8rem', fontWeight: 'bold', margin: 0 };
   const searchInputStyle = { width: '100%', padding: '10px 12px 10px 36px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '0.95rem', background: 'white' };
@@ -90,10 +90,11 @@ const AdminDashboard: React.FC = () => {
   const theadStyle = { backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--border)' };
   const rowStyle = { borderBottom: '1px solid var(--border)' };
   const cellStyle = { padding: '12px 16px' };
-  const noDataStyle = { padding: '32px', textAlign: 'center', color: 'var(--text-muted)' };
+  const noDataStyle: React.CSSProperties = { padding: '32px', textAlign: 'center', color: 'var(--text-muted)' };
   const iconBtnStyle = { background: 'none', border: 'none', cursor: 'pointer', padding: '4px' };
-  const tabButton = (active) => ({
-    padding: '8px 16px', border: 'none', borderBottom: active ? '2px solid var(--primary)' : '2px solid transparent', background: 'transparent', color: active ? 'var(--primary)' : 'var(--text-muted)', fontWeight: active ? '600' : '500', cursor: 'pointer' })
+  const tabButton = (active: boolean) => ({
+    padding: '8px 16px', border: 'none', borderBottom: active ? '2px solid var(--primary)' : '2px solid transparent', background: 'transparent', color: active ? 'var(--primary)' : 'var(--text-muted)', fontWeight: active ? '600' : '500', cursor: 'pointer'
+  })
 
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },

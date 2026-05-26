@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldCheck, Eye, EyeOff, AlertCircle, Sparkles, Mail, KeyRound } from 'lucide-react';
+import { ShieldCheck, Eye, EyeOff, AlertCircle, Sparkles, Mail, } from 'lucide-react';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
 
 const AdminSignup: React.FC = () => {
@@ -293,7 +293,7 @@ const AdminSignup: React.FC = () => {
                   {[0, 1, 2, 3, 4, 5].map((index) => (
                     <input
                       key={index}
-                      ref={el => otpRefs.current[index] = el}
+                      // ref={el => otpRefs.current[index] = el}
                       type="text"
                       maxLength={1}
                       value={formData.otp[index] || ''}

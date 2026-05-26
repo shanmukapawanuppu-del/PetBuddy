@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Lock, Eye, EyeOff, AlertCircle, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
 
 const AdminLogin: React.FC = () => {
@@ -14,6 +14,9 @@ const AdminLogin: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
+  // const [showOtp, setShowOtp] = useState(false);
+  // const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  // const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const { isAuthenticated, loginAdmin } = useAdminAuth();
   const navigate = useNavigate();
@@ -102,7 +105,7 @@ const AdminLogin: React.FC = () => {
         
         <div style={{ position: 'relative', zIndex: 3, maxWidth: '600px', animation: 'slideUp 1s ease-out' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 16px', background: 'rgba(255,255,255,0.15)', borderRadius: '30px', backdropFilter: 'blur(10px)', marginBottom: '24px', fontWeight: '600', letterSpacing: '1px' }}>
-            <Lock size={18} color="#2dd4bf" /> Secure Environment
+            {/* <Lock size={18} color="#2dd4bf" /> Secure Environment */}
           </div>
           <h1 style={{ fontSize: '4.5rem', fontWeight: '900', lineHeight: 1.1, marginBottom: '24px', textShadow: '0 10px 30px rgba(0,0,0,0.3)' }}>
             Welcome <br/> <span style={{ color: '#2dd4bf' }}>Back.</span>
