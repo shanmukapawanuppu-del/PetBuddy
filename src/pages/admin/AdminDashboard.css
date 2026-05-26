@@ -36,36 +36,106 @@
   animation: fadeInUp 0.6s ease forwards;
 }
 
-/* Different background gradients for each summary card – using nth‑child */
+/* Custom styles for dashboard summary cards */
+.sitter-card,
 .owner-card {
-  width: 20%;
-  background: linear-gradient(135deg, #204ee7, #38bdf8);
-  /* teal */
-  color: #fff;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 24px;
-  animation: fadeInUp 0.6s ease forwards;
-  transition: transform 0.3s ease, background 0.3s ease;
-}
-
-.owner-card:hover {
-  transform: translateY(-4px) scale(1.02);
-  background: rgba(6, 41, 240, 0.25);
-}
-
-.sitter-card {
-  background: linear-gradient(135deg, #7c3aed, #a78bfa);
-  /* purple */
-  color: #fff;
-  border-radius: 12px;
-  padding: 24px;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   animation: fadeInUp 0.5s ease forwards;
-  transition: transform 0.3s ease, background 0.3s ease;
 }
 
-.sitter-card:hover {
-  transform: translateY(-4px) scale(1.02);
-  background: rgba(255, 255, 255, 0.25);
+.sitter-card.card-total {
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+  box-shadow: 0 10px 20px -5px rgba(13, 148, 136, 0.3);
+}
+.sitter-card.card-total:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px -5px rgba(13, 148, 136, 0.5);
+}
+
+.sitter-card.card-pending {
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+  box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.3);
+}
+.sitter-card.card-pending:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px -5px rgba(245, 158, 11, 0.5);
+}
+
+.sitter-card.card-verified {
+  background: linear-gradient(135deg, #047857 0%, #10b981 100%);
+  box-shadow: 0 10px 20px -5px rgba(16, 185, 129, 0.3);
+}
+.sitter-card.card-verified:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px -5px rgba(16, 185, 129, 0.5);
+}
+
+.sitter-card.card-rejected {
+  background: linear-gradient(135deg, #be123c 0%, #f43f5e 100%);
+  box-shadow: 0 10px 20px -5px rgba(244, 63, 94, 0.3);
+}
+.sitter-card.card-rejected:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px -5px rgba(244, 63, 94, 0.5);
+}
+
+.owner-card.card-total-owners {
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+  box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.3);
+}
+.owner-card.card-total-owners:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px -5px rgba(59, 130, 246, 0.5);
+}
+
+.owner-card.card-active-owners {
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+  box-shadow: 0 10px 20px -5px rgba(13, 148, 136, 0.3);
+}
+.owner-card.card-active-owners:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px -5px rgba(13, 148, 136, 0.5);
+}
+
+.owner-card.card-blocked-owners {
+  background: linear-gradient(135deg, #334155 0%, #64748b 100%);
+  box-shadow: 0 10px 20px -5px rgba(100, 116, 139, 0.3);
+}
+.owner-card.card-blocked-owners:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px -5px rgba(100, 116, 139, 0.5);
+}
+
+.owner-card.card-pets-owners {
+  background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+  box-shadow: 0 10px 20px -5px rgba(167, 139, 250, 0.3);
+}
+.owner-card.card-pets-owners:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 30px -5px rgba(167, 139, 250, 0.5);
+}
+
+.card-label {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.card-value {
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #ffffff;
 }
 
 .card:hover {
