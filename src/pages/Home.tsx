@@ -1,10 +1,23 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { ShieldCheck, Heart, Clock, Star, PartyPopper, Briefcase, PlaneTakeoff, ShieldAlert, Sparkles, Search, Compass } from 'lucide-react';
 import { CAREGIVERS } from '../data/caregivers';
 import CaregiverCard from '../components/CaregiverCard';
 
 const Home: React.FC = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash) {
+      const element = document.querySelector(location.hash) as HTMLElement | null;
+      if (element) {
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
+      }
+    }
+  }, [location.hash]);
+
   // Get top 3 rated caregivers for spotlight
   const spotlightSitters = [...CAREGIVERS]
     .sort((a, b) => b.rating - a.rating)

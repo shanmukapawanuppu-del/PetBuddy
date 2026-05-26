@@ -21,10 +21,6 @@ const Navbar: React.FC = () => {
   }, []);
 
   // Close mobile menu on route change
-  useEffect(() => {
-    setIsOpen(false);
-  }, [location]);
-
   const toggleMenu = () => setIsOpen(!isOpen);
 
   const isActive = (path: string) => {
@@ -45,9 +41,11 @@ const Navbar: React.FC = () => {
           <nav className="desktop-nav">
             <Link to="/home" className={`nav-link ${isActive('/home')}`}>Home</Link>
             <Link to="/caregivers" className={`nav-link ${isActive('/caregivers')}`}>Find Caregivers</Link>
-            <a href="/home#features" className="nav-link">Features</a>
-            <a href="/home#testimonials" className="nav-link">Reviews</a>
-            <Link to="/login" className={`nav-link ${isActive('/login') || isActive('/signup')}`}>Login/Signup</Link>
+            <Link to="/features" className={`nav-link ${isActive('/features')}`}>Features</Link>
+            <Link to="/testimonials" className={`nav-link ${isActive('/testimonials')}`}>Reviews</Link>
+            <Link to="/service" className={`nav-link ${isActive('/service')}`}>Service</Link>
+            <Link to="/login" className={`nav-link ${isActive('/login')}`}>Login</Link>
+            {/* <Link to="/login" className={`nav-link ${isActive('/login')}`}>Login / Signup</Link> */}
             <Link to="/caregivers" className="btn btn-primary btn-nav">
               Find a Pet Sitter
             </Link>
@@ -64,9 +62,10 @@ const Navbar: React.FC = () => {
         <nav className="mobile-nav">
           <Link to="/home" className={`mobile-link ${isActive('/home')}`}>Home</Link>
           <Link to="/caregivers" className={`mobile-link ${isActive('/caregivers')}`}>Find Caregivers</Link>
-          <a href="/home#features" className="mobile-link" onClick={() => setIsOpen(false)}>Features</a>
-          <a href="/home#testimonials" className="mobile-link" onClick={() => setIsOpen(false)}>Reviews</a>
-          <Link to="/login" className={`mobile-link ${isActive('/login') || isActive('/signup')}`}>Login/Signup</Link>
+          <Link to="/features" className={`mobile-link ${isActive('/features')}`} onClick={() => setIsOpen(false)}>Features</Link>
+          <Link to="/testimonials" className={`mobile-link ${isActive('/testimonials')}`} onClick={() => setIsOpen(false)}>Reviews</Link>
+          <Link to="/service" className={`mobile-link ${isActive('/service')}`} onClick={() => setIsOpen(false)}>Service</Link>
+          <Link to="/login" className={`mobile-link ${isActive('/login')}`} onClick={() => setIsOpen(false)}>Login / Signup</Link>
           <Link to="/caregivers" className="btn btn-primary mobile-cta-btn">
             Find a Pet Sitter
           </Link>
