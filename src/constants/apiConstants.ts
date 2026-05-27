@@ -12,5 +12,12 @@ export const API_ROUTES = {
   },
   ADMIN: {
     UPDATE_PROFILE: `${API_BASE_URL}/admin/profile`,
+  },
+  DASHBOARD: {
+    DASHBOARD_STATS: `${API_BASE_URL}/dashboard/sitters/stats`,
+    SITTERS_LIST: `${API_BASE_URL}/dashboard/sitters`,
+    OWNERS_LIST: `${API_BASE_URL}/dashboard/owners`,
+    UPDATE_STATUS: (id: string | number) => `${API_BASE_URL}/dashboard/sitters/${id}/status`,
+    SITTER_INFO: (id: string | number) => `${API_BASE_URL}/dashboard/sitters/${id}`,
   }
 };
