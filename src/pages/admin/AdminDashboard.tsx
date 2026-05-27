@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LogOut, Users, LayoutDashboard, Search, Eye, Ban, Trash2, CheckCircle, XCircle, FileText, Info, Filter } from 'lucide-react';
+import { LogOut, Users, LayoutDashboard, Search, Eye, Ban, Trash2, CheckCircle, XCircle, FileText, Info, Filter, X, MapPin, Mail, Phone, Calendar, Shield, PawPrint, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
 import { Link } from 'react-router-dom';
 import './AdminDashboard.css';
@@ -103,6 +103,8 @@ const AdminDashboard: React.FC = () => {
   const { adminUser, logoutAdmin } = useAdminAuth();
 
   const [currentView, setCurrentView] = useState<'dashboard' | 'users' | 'bookings' | 'payments' | 'settings'>('dashboard');
+  const [selectedSitter, setSelectedSitter] = useState<any | null>(null);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [greeting, setGreeting] = useState('');
   const [activeTab, setActiveTab] = useState<'owners' | 'sitters'>('sitters');
   const [ownerSearch, setOwnerSearch] = useState('');
@@ -208,9 +210,11 @@ const AdminDashboard: React.FC = () => {
 
   const sitterCounts = {
     total: mockSitters.length,
-    pending: mockSitters.filter(s => s.verifStatus === 'Pending').length,
-    verified: mockSitters.filter(s => s.verifStatus === 'Verified').length,
-    rejected: mockSitters.filter(s => s.verifStatus === 'Rejected').length,
+    pending: mockSitters.filter(s => s.verifStatus === 'Pending' || s.status === 'PENDING').length,
+    verified: mockSitters.filter(s => s.verifStatus === 'Verified' || s.status === 'APPROVED').length,
+    rejected: mockSitters.filter(s => s.verifStatus === 'Rejected' || s.status === 'REJECTED').length,
+    blocked: mockSitters.filter(s => s.status === 'BLOCKED' || s.status === 'Blocked' || s.verifStatus === 'Blocked').length,
+    inactive: mockSitters.filter(s => s.status === 'INACTIVE' || s.status === 'Inactive' || s.verifStatus === 'Inactive').length,
   };
 
   const ownerCounts = {
@@ -246,13 +250,60 @@ const AdminDashboard: React.FC = () => {
   return (
     <div className="admin-wrapper">
         {/* Sidebar */}
-        <aside className="admin-sidebar">
-          <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ color: 'var(--primary)' }}>Pet</span>Buddy
-            </h2>
-            <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px' }}>Admin Portal</p>
+        <aside 
+          className="admin-sidebar"
+          style={{ 
+            width: isSidebarExpanded ? '280px' : '80px', 
+            transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            overflowX: 'hidden' 
+          }}
+        >
+          <div style={{ 
+            padding: '24px 16px', 
+            borderBottom: '1px solid rgba(255,255,255,0.1)', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: isSidebarExpanded ? 'space-between' : 'center',
+            flexDirection: isSidebarExpanded ? 'row' : 'column',
+            gap: '12px',
+            transition: 'all 0.3s'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '44px', height: '44px', borderRadius: '12px',
+                backgroundColor: 'var(--primary-light)', color: 'var(--primary)',
+                display: 'grid', placeItems: 'center',
+                boxShadow: '0 4px 12px rgba(13, 148, 136, 0.3)',
+                flexShrink: 0
+              }}>
+                <PawPrint size={24} />
+              </div>
+              {isSidebarExpanded && (
+                <span style={{ fontSize: '1.3rem', fontWeight: '800', color: 'white', letterSpacing: '-0.3px' }}>
+                  <span style={{ color: 'var(--primary)' }}>Pet</span>Buddy
+                </span>
+              )}
+            </div>
+            
+            {/* Expand / Hide toggle button */}
+            <button 
+              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
+              style={{
+                background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%',
+                width: '28px', height: '28px', display: 'grid', placeItems: 'center',
+                color: 'white', cursor: 'pointer', transition: 'all 0.2s',
+                outline: 'none',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+              }}
+              onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+              onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+              title={isSidebarExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
+            >
+              {isSidebarExpanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+            </button>
           </div>
+
+          {/* Navigation Links */}
           <nav style={{ padding: '16px 0', flex: 1 }}>
             {navItems.map(item => {
               const isActive = currentView === item.id;
@@ -266,65 +317,98 @@ const AdminDashboard: React.FC = () => {
                     setCurrentView(item.id as any);
                   }}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 24px',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: isSidebarExpanded ? 'flex-start' : 'center', 
+                    gap: isSidebarExpanded ? '12px' : '0', 
+                    padding: '12px 24px',
                     backgroundColor: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
-                    color: isActive ? 'white' : '#cbd5e1', textDecoration: 'none', transition: 'all 0.2s',
+                    color: isActive ? 'white' : '#cbd5e1', 
+                    textDecoration: 'none', 
+                    transition: 'all 0.2s',
                     borderLeft: isActive ? '4px solid var(--primary)' : '4px solid transparent'
                   }}
+                  title={!isSidebarExpanded ? item.name : undefined}
                 >
-                  <Icon size={20} />
-                  <span>{item.name}</span>
+                  <Icon size={20} style={{ flexShrink: 0 }} />
+                  {isSidebarExpanded && <span style={{ whiteSpace: 'nowrap' }}>{item.name}</span>}
                 </Link>
               );
             })}
           </nav>
-          {/* Sidebar Profile Card */}
-          <div style={{ padding: '20px 24px', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{ 
-              width: '44px', height: '44px', borderRadius: '50%', 
-              backgroundColor: 'var(--primary)', color: 'white', 
-              display: 'grid', placeItems: 'center', fontWeight: '800', 
-              fontSize: '1.1rem', flexShrink: 0,
-              boxShadow: '0 4px 12px rgba(13, 148, 136, 0.3)'
-            }}>
-              {adminUser?.fullName?.charAt(0).toUpperCase()}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontWeight: '700', color: 'white', fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {adminUser?.fullName}
-              </div>
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '2px', fontWeight: '500' }}>
-                Administrator
-              </div>
-            </div>
-          </div>
 
-          {/* Sign Out Button Wrapper */}
-          <div style={{ padding: '0 24px 28px 24px' }}>
-            <button 
-              onClick={handleLogout} 
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', 
-                width: '100%', padding: '12px',
-                backgroundColor: 'rgba(239, 68, 68, 0.05)', color: '#fca5a5', 
-                border: '1.5px solid rgba(239, 68, 68, 0.25)',
-                borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s ease', 
-                fontWeight: '700', fontSize: '0.9rem'
-              }}
-              onMouseOver={e => { 
-                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.12)'; 
-                e.currentTarget.style.color = '#ef4444';
-                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
-              }}
-              onMouseOut={e => { 
-                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.05)'; 
-                e.currentTarget.style.color = '#fca5a5';
-                e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.25)';
+          {/* Sidebar Profile Item */}
+          <div 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: isSidebarExpanded ? 'flex-start' : 'center', 
+              gap: isSidebarExpanded ? '12px' : '0', 
+              padding: '12px 24px',
+              backgroundColor: 'transparent',
+              color: '#cbd5e1', 
+              transition: 'all 0.2s',
+              borderLeft: '4px solid transparent',
+              borderTop: '1px solid rgba(255,255,255,0.08)',
+              marginTop: 'auto',
+              width: '100%',
+              boxSizing: 'border-box'
+            }}
+            title={!isSidebarExpanded ? adminUser?.fullName : undefined}
+          >
+            <div 
+              style={{ 
+                width: '24px', height: '24px', borderRadius: '50%', 
+                backgroundColor: 'var(--primary)', color: 'white', 
+                display: 'grid', placeItems: 'center', fontWeight: '800', 
+                fontSize: '0.75rem', flexShrink: 0,
+                boxShadow: '0 2px 6px rgba(13, 148, 136, 0.3)'
               }}
             >
-              <LogOut size={16} /> Sign Out
-            </button>
+              {adminUser?.fullName?.charAt(0).toUpperCase()}
+            </div>
+            {isSidebarExpanded && (
+              <span style={{ whiteSpace: 'nowrap', fontWeight: '500', fontSize: '0.95rem', color: '#cbd5e1' }}>
+                {adminUser?.fullName}
+              </span>
+            )}
           </div>
+
+          {/* Sign Out Item */}
+          <button 
+            onClick={handleLogout} 
+            style={{
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: isSidebarExpanded ? 'flex-start' : 'center', 
+              gap: isSidebarExpanded ? '12px' : '0', 
+              padding: '12px 24px',
+              backgroundColor: 'transparent', 
+              color: '#cbd5e1', 
+              border: 'none',
+              borderLeft: '4px solid transparent',
+              width: '100%',
+              cursor: 'pointer', 
+              transition: 'all 0.2s ease', 
+              fontWeight: '500', 
+              fontSize: '0.95rem',
+              outline: 'none',
+              marginBottom: '16px',
+              boxSizing: 'border-box'
+            }}
+            title={!isSidebarExpanded ? "Sign Out" : undefined}
+            onMouseOver={e => { 
+              e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'; 
+              e.currentTarget.style.color = '#ef4444';
+            }}
+            onMouseOut={e => { 
+              e.currentTarget.style.backgroundColor = 'transparent'; 
+              e.currentTarget.style.color = '#cbd5e1';
+            }}
+          >
+            <LogOut size={20} style={{ flexShrink: 0 }} /> 
+            {isSidebarExpanded && <span style={{ whiteSpace: 'nowrap' }}>Sign Out</span>}
+          </button>
         </aside>
 
         {/* Main Content */}
@@ -603,6 +687,14 @@ const AdminDashboard: React.FC = () => {
                       <p className="card-label">Rejected Sitters</p>
                       <h3 className="card-value">{sitterCounts.rejected}</h3>
                     </div>
+                    <div className="sitter-card card-blocked">
+                      <p className="card-label">Blocked Sitters</p>
+                      <h3 className="card-value">{sitterCounts.blocked}</h3>
+                    </div>
+                    <div className="sitter-card card-inactive">
+                      <p className="card-label">Inactive Sitters</p>
+                      <h3 className="card-value">{sitterCounts.inactive}</h3>
+                    </div>
                   </div>
 
                   {/* Search & Filter Container aligned to the right */}
@@ -815,13 +907,13 @@ const AdminDashboard: React.FC = () => {
                               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                                 {sitter.verifStatus === 'Pending' && (
                                   <>
-                                    <button onClick={() => console.log('Approve', sitter.id)} style={iconBtnStyle}><CheckCircle size={20} color="var(--success)" /></button>
-                                    <button onClick={() => console.log('Reject', sitter.id)} style={iconBtnStyle}><XCircle size={20} color="var(--danger)" /></button>
-                                    <button onClick={() => console.log('Request Info', sitter.id)} style={iconBtnStyle}><FileText size={20} color="var(--secondary)" /></button>
+                                    <button onClick={() => console.log('Approve', sitter.id)} style={iconBtnStyle} title="Approve Sitter"><CheckCircle size={20} color="var(--success)" /></button>
+                                    <button onClick={() => console.log('Reject', sitter.id)} style={iconBtnStyle} title="Reject Sitter"><XCircle size={20} color="var(--danger)" /></button>
+                                    <button onClick={() => console.log('Request Info', sitter.id)} style={iconBtnStyle} title="Request Info"><FileText size={20} color="var(--secondary)" /></button>
                                   </>
                                 )}
-                                <button onClick={() => console.log('View', sitter.id)} style={iconBtnStyle}><Eye size={20} /></button>
-                                <button onClick={() => console.log('Block', sitter.id)} style={iconBtnStyle}><Ban size={20} /></button>
+                                <button onClick={() => setSelectedSitter(sitter)} style={iconBtnStyle} title="View Sitter Details"><Eye size={20} /></button>
+                                <button onClick={() => console.log('Block', sitter.id)} style={iconBtnStyle} title="Block Sitter"><Ban size={20} /></button>
                               </div>
                             </td>
                           </tr>
@@ -839,6 +931,127 @@ const AdminDashboard: React.FC = () => {
 
           {currentView === 'users' && (
             <UserManagement getStatusPillStyle={getStatusPillStyle} getBadgeStyle={getBadgeStyle} />
+          )}
+
+          {selectedSitter && (
+            <div 
+              style={{
+                position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+                backgroundColor: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)',
+                display: 'grid', placeItems: 'center', zIndex: 1000,
+              }}
+              onClick={() => setSelectedSitter(null)}
+            >
+              <div 
+                style={{
+                  backgroundColor: 'white', borderRadius: '24px', width: '90%', maxWidth: '640px',
+                  boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid var(--border)',
+                  overflow: 'hidden',
+                }}
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div style={{ padding: '24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-main)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <Shield size={22} color="var(--primary)" />
+                    <span style={{ fontWeight: '800', fontSize: '1.2rem', color: 'var(--text-heading)' }}>Sitter Profile Details</span>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedSitter(null)} 
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', alignItems: 'center' }}
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+
+                {/* Body */}
+                <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', maxHeight: '70vh', overflowY: 'auto' }}>
+                  {/* Sitter Avatar & Basic Info */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', borderBottom: '1px solid var(--border)', paddingBottom: '20px' }}>
+                    <div style={{ 
+                      width: '80px', height: '80px', borderRadius: '24px', 
+                      backgroundColor: 'var(--primary-light)', color: 'var(--primary)', 
+                      display: 'grid', placeItems: 'center', fontSize: '2.5rem', fontWeight: '800',
+                      boxShadow: '0 10px 20px -5px rgba(13, 148, 136, 0.2)'
+                    }}>
+                      {selectedSitter.avatar || selectedSitter.fullName.charAt(0).toUpperCase()}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--text-heading)', margin: 0 }}>
+                        {selectedSitter.fullName}
+                      </h2>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '4px' }}>
+                        <span style={{ ...badgeBase, ...getBadgeStyle(selectedSitter.verifStatus || selectedSitter.status) }}>
+                          {selectedSitter.verifStatus || selectedSitter.status}
+                        </span>
+                        <span style={{ ...badgeBase, ...getBadgeStyle(selectedSitter.availStatus || selectedSitter.availability) }}>
+                          {selectedSitter.availStatus || selectedSitter.availability || 'Unknown'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sitter Details Grid */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <Mail size={18} color="var(--primary)" style={{ marginTop: '3px' }} />
+                      <div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase' }}>Email Address</div>
+                        <div style={{ fontSize: '0.95rem', color: 'var(--text-heading)', fontWeight: '600' }}>{selectedSitter.email}</div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <Phone size={18} color="var(--primary)" style={{ marginTop: '3px' }} />
+                      <div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase' }}>Phone Number</div>
+                        <div style={{ fontSize: '0.95rem', color: 'var(--text-heading)', fontWeight: '600' }}>{selectedSitter.phone || selectedSitter.phoneNumber}</div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <Calendar size={18} color="var(--primary)" style={{ marginTop: '3px' }} />
+                      <div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase' }}>Registration Date</div>
+                        <div style={{ fontSize: '0.95rem', color: 'var(--text-heading)', fontWeight: '600' }}>{selectedSitter.date || new Date(selectedSitter.createdOn).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <MapPin size={18} color="var(--primary)" style={{ marginTop: '3px' }} />
+                      <div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase' }}>Location</div>
+                        <div style={{ fontSize: '0.95rem', color: 'var(--text-heading)', fontWeight: '600' }}>
+                          {selectedSitter.city && selectedSitter.state ? `${selectedSitter.city}, ${selectedSitter.state}` : 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sitter Full Address */}
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+                    <MapPin size={18} color="var(--primary)" style={{ marginTop: '3px' }} />
+                    <div>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase' }}>Full Address</div>
+                      <div style={{ fontSize: '0.95rem', color: 'var(--text-heading)', fontWeight: '600', lineHeight: '1.4' }}>
+                        {selectedSitter.address || 'No complete address recorded.'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Action */}
+                <div style={{ padding: '20px 32px', borderTop: '1px solid var(--border)', background: 'var(--bg-main)', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button 
+                    onClick={() => setSelectedSitter(null)} 
+                    className="btn btn-primary"
+                    style={{ padding: '10px 24px', borderRadius: '12px' }}
+                  >
+                    Close Profile
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </main>
