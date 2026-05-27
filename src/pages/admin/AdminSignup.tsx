@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldCheck, Eye, EyeOff, AlertCircle, Sparkles, Mail, } from 'lucide-react';
+import { ShieldCheck, Eye, EyeOff, AlertCircle, Sparkles, Mail, Info } from 'lucide-react';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
 
 const AdminSignup: React.FC = () => {
@@ -16,6 +16,8 @@ const AdminSignup: React.FC = () => {
   });
   
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPasswordInfo, setShowPasswordInfo] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
@@ -86,6 +88,7 @@ const AdminSignup: React.FC = () => {
   };
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const passwordRef = useRef<HTMLInputElement>(null);
 
   const handleOtpChange = (index: number, val: string) => {
     if (!/^[0-9]*$/.test(val)) return;
@@ -99,6 +102,8 @@ const AdminSignup: React.FC = () => {
     setApiError('');
     if (char && index < 5 && otpRefs.current[index + 1]) {
       otpRefs.current[index + 1]?.focus();
+    } else if (char && index === 5) {
+      passwordRef.current?.focus();
     }
   };
 
@@ -116,8 +121,13 @@ const AdminSignup: React.FC = () => {
       if (errors.otp) setErrors(prev => ({ ...prev, otp: '' }));
       setApiError('');
       const focusIndex = Math.min(pastedData.length, 5);
-      if (otpRefs.current[focusIndex]) otpRefs.current[focusIndex]?.focus();
-      else otpRefs.current[5]?.focus();
+      if (pastedData.length === 6) {
+        passwordRef.current?.focus();
+      } else if (otpRefs.current[focusIndex]) {
+        otpRefs.current[focusIndex]?.focus();
+      } else {
+        otpRefs.current[5]?.focus();
+      }
     }
   };
 
@@ -171,7 +181,7 @@ const AdminSignup: React.FC = () => {
   if (isAdminRegistered) return null;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', width: '100vw', margin: 0, padding: 0 }}>
+    <div style={{ display: 'flex', height: '100vh', width: '100vw', margin: 0, padding: 0, overflow: 'hidden' }}>
       {/* Left Vibrant Image Side */}
       <div style={{ 
         flex: '1.2', 
@@ -215,21 +225,22 @@ const AdminSignup: React.FC = () => {
         flex: '1', 
         backgroundColor: 'var(--bg-main)', 
         display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        padding: '40px'
+        flexDirection: 'column',
+        padding: '24px',
+        overflowY: 'auto'
       }}>
         <div style={{ 
           width: '100%', 
           maxWidth: '480px', 
           background: 'var(--bg-card)', 
-          padding: '48px', 
+          padding: '32px', 
           borderRadius: '24px', 
           boxShadow: '0 25px 50px -12px rgba(13, 148, 136, 0.15)',
-          border: '1px solid rgba(13, 148, 136, 0.1)'
+          border: '1px solid rgba(13, 148, 136, 0.1)',
+          margin: 'auto'
         }} className="animate-fade">
           
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
             <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: 'var(--primary-light)', display: 'grid', placeItems: 'center', color: 'var(--primary)', margin: '0 auto 16px' }}>
               <ShieldCheck size={28} />
             </div>
@@ -285,7 +296,7 @@ const AdminSignup: React.FC = () => {
             </form>
           ) : (
             // STEP 2 FORM
-            <form onSubmit={handleVerifyAndRegister} style={{ display: 'flex', flexDirection: 'column', gap: '20px', animation: 'fadeIn 0.3s ease-out' }} noValidate>
+            <form onSubmit={handleVerifyAndRegister} style={{ display: 'flex', flexDirection: 'column', gap: '16px', animation: 'fadeIn 0.3s ease-out' }} noValidate>
               
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', fontSize: '0.9rem', color: 'var(--text-heading)' }}>6-Digit OTP</label>
@@ -293,7 +304,7 @@ const AdminSignup: React.FC = () => {
                   {[0, 1, 2, 3, 4, 5].map((index) => (
                     <input
                       key={index}
-                      // ref={el => otpRefs.current[index] = el}
+                      ref={(el) => { otpRefs.current[index] = el; }}
                       type="text"
                       maxLength={1}
                       value={formData.otp[index] || ''}
@@ -317,32 +328,54 @@ const AdminSignup: React.FC = () => {
               </div>
 
               <div>
-                <label style={{ display: 'block', marginBottom: '6px', fontWeight: '700', fontSize: '0.9rem', color: 'var(--text-heading)' }}>Set Password</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                  <label style={{ fontWeight: '700', fontSize: '0.9rem', color: 'var(--text-heading)', margin: 0 }}>Set Password</label>
+                  <div 
+                    onMouseEnter={() => setShowPasswordInfo(true)} 
+                    onMouseLeave={() => setShowPasswordInfo(false)}
+                    style={{ position: 'relative', display: 'flex', alignItems: 'center', color: 'var(--text-muted)', cursor: 'help' }}
+                  >
+                    <Info size={16} />
+                    {showPasswordInfo && (
+                      <div style={{ position: 'absolute', bottom: '100%', left: '50%', transform: 'translateX(-50%)', marginBottom: '8px', background: 'var(--bg-card)', padding: '14px', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', border: '1px solid var(--border)', width: '260px', zIndex: 10 }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '8px', color: 'var(--text-heading)' }}>Password Requirements:</div>
+                        <div style={{ fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
+                          <div style={{ color: pRules.length ? 'var(--success)' : 'var(--text-muted)' }}>✓ 8 or more characters</div>
+                          <div style={{ color: pRules.upper ? 'var(--success)' : 'var(--text-muted)' }}>✓ One big letter (A-Z)</div>
+                          <div style={{ color: pRules.lower ? 'var(--success)' : 'var(--text-muted)' }}>✓ One small letter (a-z)</div>
+                          <div style={{ color: pRules.number ? 'var(--success)' : 'var(--text-muted)' }}>✓ One number (0-9)</div>
+                          <div style={{ color: pRules.special ? 'var(--success)' : 'var(--text-muted)' }}>✓ One symbol (like @, !, $)</div>
+                        </div>
+                        {/* <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', padding: '8px', backgroundColor: 'var(--bg-main)', borderRadius: '8px' }}>
+                          <span style={{ fontWeight: '600' }}>Example:</span> P@ssw0rd123
+                        </div> */}
+                      </div>
+                    )}
+                  </div>
+                </div>
                 <div style={{ position: 'relative' }}>
-                  <input name="password" type={showPassword ? 'text' : 'password'} className="input-field" placeholder="••••••••" value={formData.password} onChange={handleChange} disabled={isLoading} style={{ width: '100%', paddingRight: '40px' }} />
+                  <input ref={passwordRef} name="password" type={showPassword ? 'text' : 'password'} className="input-field" placeholder="••••••••" value={formData.password} onChange={handleChange} disabled={isLoading} style={{ width: '100%', paddingRight: '40px' }} />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
-                </div>
-                <div style={{ marginTop: '10px', fontSize: '0.8rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                  <div style={{ color: pRules.length ? 'var(--success)' : 'var(--text-muted)' }}>✓ 8+ chars</div>
-                  <div style={{ color: pRules.upper ? 'var(--success)' : 'var(--text-muted)' }}>✓ Uppercase</div>
-                  <div style={{ color: pRules.lower ? 'var(--success)' : 'var(--text-muted)' }}>✓ Lowercase</div>
-                  <div style={{ color: pRules.number ? 'var(--success)' : 'var(--text-muted)' }}>✓ Number</div>
-                  <div style={{ color: pRules.special ? 'var(--success)' : 'var(--text-muted)', gridColumn: 'span 2' }}>✓ Special character</div>
                 </div>
                 {errors.password && <span style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '4px', display: 'block' }}>{errors.password}</span>}
               </div>
 
               <div>
                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '700', fontSize: '0.9rem', color: 'var(--text-heading)' }}>Confirm Password</label>
-                <input name="confirmPassword" type={showPassword ? 'text' : 'password'} className="input-field" placeholder="••••••••" value={formData.confirmPassword} onChange={handleChange} disabled={isLoading} style={{ width: '100%' }} />
+                <div style={{ position: 'relative' }}>
+                  <input name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} className="input-field" placeholder="••••••••" value={formData.confirmPassword} onChange={handleChange} disabled={isLoading} style={{ width: '100%', paddingRight: '40px' }} />
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
                 {errors.confirmPassword && <span style={{ color: 'var(--danger)', fontSize: '0.85rem', marginTop: '4px', display: 'block' }}>{errors.confirmPassword}</span>}
               </div>
 
-              <div style={{ marginTop: '4px', padding: '12px', backgroundColor: 'var(--bg-main)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                  <input type="checkbox" name="termsAccepted" checked={formData.termsAccepted} onChange={handleChange} disabled={isLoading} style={{ marginTop: '3px' }} />
+              <div style={{ marginTop: '4px', padding: '10px 12px', backgroundColor: 'var(--bg-main)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                  <input type="checkbox" name="termsAccepted" checked={formData.termsAccepted} onChange={handleChange} disabled={isLoading} style={{ margin: 0, padding: 0 }} />
                   <span>I understand this grants permanent super-admin privileges.</span>
                 </label>
               </div>

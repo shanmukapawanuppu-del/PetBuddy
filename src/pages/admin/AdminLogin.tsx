@@ -75,7 +75,7 @@ const AdminLogin: React.FC = () => {
   if (isAuthenticated) return null;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', width: '100vw', margin: 0, padding: 0 }}>
+    <div style={{ display: 'flex', height: '100vh', width: '100vw', margin: 0, padding: 0, overflow: 'hidden' }}>
       {/* Left Vibrant Image Side */}
       <div style={{ 
         flex: '1.2', 
@@ -121,9 +121,9 @@ const AdminLogin: React.FC = () => {
         flex: '1', 
         backgroundColor: 'var(--bg-main)', 
         display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        padding: '40px'
+        flexDirection: 'column',
+        padding: '40px',
+        overflowY: 'auto'
       }}>
         <div style={{ 
           width: '100%', 
@@ -132,7 +132,8 @@ const AdminLogin: React.FC = () => {
           padding: '48px', 
           borderRadius: '24px', 
           boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.15)',
-          border: '1px solid rgba(15, 23, 42, 0.05)'
+          border: '1px solid rgba(15, 23, 42, 0.05)',
+          margin: 'auto'
         }} className="animate-fade">
           
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
@@ -181,6 +182,12 @@ const AdminLogin: React.FC = () => {
             </button>
             
           </form>
+
+          {!localStorage.getItem('petbuddy_admin_account') && (
+            <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+              Admin account not initialized? <Link to="/admin/signup" style={{ color: 'var(--primary)', fontWeight: '700', textDecoration: 'none' }}>Register</Link>
+            </div>
+          )}
           
         </div>
       </div>

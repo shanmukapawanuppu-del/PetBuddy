@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
@@ -66,7 +66,7 @@ const App: React.FC = () => {
         <Routes>
           
           {/* Public Routes - Wrapped with Navbar/Footer */}
-          <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
+          <Route path="/" element={<Navigate to="/admin/login" replace />} />
           <Route path="/home" element={<PublicLayout><Home /></PublicLayout>} />
           <Route path="/caregivers" element={<PublicLayout><CaregiverListing /></PublicLayout>} />
           <Route path="/profile/:id" element={<PublicLayout><CaregiverProfile /></PublicLayout>} />
