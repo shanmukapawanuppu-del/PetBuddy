@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LogOut, Users, LayoutDashboard, Search, Eye, Ban, Trash2, CheckCircle, XCircle, FileText, Info, Filter } from 'lucide-react';
+import { LogOut, Users, LayoutDashboard, Search, Eye, Ban, Trash2, CheckCircle, XCircle, FileText, Info, Filter, Calendar } from 'lucide-react';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
 import { Link } from 'react-router-dom';
 import './AdminDashboard.css';
@@ -238,10 +238,11 @@ const AdminDashboard: React.FC = () => {
     padding: '8px 16px', border: 'none', borderBottom: active ? '2px solid var(--primary)' : '2px solid transparent', background: 'transparent', color: active ? 'var(--primary)' : 'var(--text-muted)', fontWeight: active ? '600' : '500', cursor: 'pointer'
   })
 
-  const navItems = [
-    { id: 'dashboard', name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-    { id: 'users', name: 'Users', path: '#', icon: Users },
-  ];
+    const navItems = [
+      { id: 'bookings', name: 'Bookings', path: '/admin/bookings', icon: Calendar },
+      { id: 'dashboard', name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+      { id: 'users', name: 'Users', path: '#', icon: Users }
+    ];
 
   return (
     <div className="admin-wrapper">
@@ -259,22 +260,25 @@ const AdminDashboard: React.FC = () => {
               const Icon = item.icon;
               return (
                 <Link
-                  key={item.name}
-                  to="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCurrentView(item.id as any);
-                  }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 24px',
-                    backgroundColor: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
-                    color: isActive ? 'white' : '#cbd5e1', textDecoration: 'none', transition: 'all 0.2s',
-                    borderLeft: isActive ? '4px solid var(--primary)' : '4px solid transparent'
-                  }}
-                >
-                  <Icon size={20} />
-                  <span>{item.name}</span>
-                </Link>
+              key={item.name}
+              to={item.path !== '#' ? item.path : '#'}
+              className={`nav-link ${isActive ? 'active-link' : ''}`}
+              onClick={(e) => {
+                if (item.path === '#') {
+                  e.preventDefault();
+                  setCurrentView(item.id as any);
+                }
+              }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 24px',
+                backgroundColor: isActive ? 'rgba(255,255,255,0.1)' : 'transparent',
+                color: isActive ? 'white' : '#cbd5e1', textDecoration: 'none', transition: 'all 0.2s',
+                borderLeft: isActive ? '4px solid var(--primary)' : '4px solid transparent'
+              }}
+            >
+              <Icon size={20} />
+              <span>{item.name}</span>
+            </Link>
               );
             })}
           </nav>

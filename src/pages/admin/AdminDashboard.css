@@ -164,15 +164,6 @@
 }
 
 /* Responsive grid for sitter */
-html, body {
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-}
-
-#root {
-  height: 100%;
-}
 .grid-4 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

@@ -23,6 +23,8 @@ import AdminLogin from './pages/admin/AdminLogin';
 import AdminForgotPassword from './pages/admin/AdminForgotPassword';
 import AdminResetPassword from './pages/admin/AdminResetPassword';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminBookings from './pages/admin/AdminBookings';
+
 
 // Scroll Restoration UX Helper
 const ScrollToTop: React.FC = () => {
@@ -87,6 +89,7 @@ const App: React.FC = () => {
           {/* Admin Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+            <Route path="/admin/bookings" element={<AdminLayout><AdminBookings /></AdminLayout>} />
             {/* Future Admin Routes will go here */}
           </Route>
 
