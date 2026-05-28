@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Eye, EyeOff, AlertCircle, Sparkles, Mail, Info } from 'lucide-react';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
+import { API_ROUTES } from '../../constants/apiConstants';
 
 const AdminSignup: React.FC = () => {
   const [step, setStep] = useState(1);
@@ -23,7 +24,7 @@ const AdminSignup: React.FC = () => {
   const [apiError, setApiError] = useState('');
   const [otpSentMessage, setOtpSentMessage] = useState('');
 
-  const { isAdminRegistered, registerAdmin } = useAdminAuth();
+  const { isAdminRegistered, checkRegistrationStatus } = useAdminAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -138,20 +139,35 @@ const AdminSignup: React.FC = () => {
     setIsLoading(true);
     setApiError('');
 
-    // Simulate sending OTP API
-    setTimeout(() => {
-      const existing = localStorage.getItem('petbuddy_admin_account');
-      if (existing) {
-        setApiError('An admin account has already been registered.');
+    try {
+      const response = await fetch(API_ROUTES.AUTH.SEND_OTP, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setApiError(data.error || 'Failed to send OTP. Please try again.');
         setIsLoading(false);
         return;
       }
-      
-      // Successfully "sent" OTP
+
       setIsLoading(false);
       setStep(2);
       setOtpSentMessage(`We've sent a secure OTP to ${formData.email}.`);
-    }, 1200);
+    } catch (err) {
+      console.error(err);
+      setApiError('Failed to connect to verification server. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   const handleVerifyAndRegister = async (e: React.FormEvent) => {
@@ -161,19 +177,36 @@ const AdminSignup: React.FC = () => {
     setIsLoading(true);
     setApiError('');
 
-    // Simulate OTP verification and registration API
-    setTimeout(() => {
-      if (formData.otp !== '123456') { // Mock check: in reality backend verifies this
-        // We'll just accept anything for the mock, but let's say "123456" is the standard test OTP
-        // Or we just accept anything not empty.
+    try {
+      // 1. Verify OTP and complete registration
+      const verifyResponse = await fetch(API_ROUTES.AUTH.VERIFY_OTP, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          otp: formData.otp,
+          password: formData.password,
+          confirmPassword: formData.confirmPassword,
+        }),
+      });
+
+      const verifyData = await verifyResponse.json();
+
+      if (!verifyResponse.ok) {
+        setApiError(verifyData.error || 'Failed to verify OTP. Please try again.');
+        setIsLoading(false);
+        return;
       }
-      
-      const mockToken = 'jwt_mock_token_' + Date.now();
-      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
-      const newAdmin = { id: 'admin_' + Date.now(), fullName, email: formData.email };
-      
-      registerAdmin(newAdmin, mockToken);
-    }, 1500);
+
+      setIsLoading(false);
+      await checkRegistrationStatus();
+      navigate("/admin/login", { replace: true });
+    } catch (err) {
+      console.error(err);
+      setApiError('Failed to connect to authentication server. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   const pRules = validatePassword(formData.password);

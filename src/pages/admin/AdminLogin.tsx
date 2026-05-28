@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
+import { API_ROUTES } from '../../constants/apiConstants';
 
 const AdminLogin: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -18,7 +19,7 @@ const AdminLogin: React.FC = () => {
   // const [otp, setOtp] = useState(['', '', '', '', '', '']);
   // const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const { isAuthenticated, loginAdmin } = useAdminAuth();
+  const { isAuthenticated, loginAdmin, isAdminRegistered } = useAdminAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -55,21 +56,38 @@ const AdminLogin: React.FC = () => {
     setIsLoading(true);
     setApiError('');
 
-    setTimeout(() => {
-      const storedAdmin = localStorage.getItem('petbuddy_admin_account');
-      if (!storedAdmin) {
-        setApiError('No admin account found. Please initialize the portal first.');
+    try {
+      const response = await fetch(API_ROUTES.AUTH.LOGIN, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setApiError(data.error || 'Invalid credentials. Access denied.');
         setIsLoading(false);
         return;
       }
-      const adminUser = JSON.parse(storedAdmin);
-      if (adminUser.email !== formData.email || formData.password === 'wrongpassword') {
-        setApiError('Invalid credentials. Access denied.');
-        setIsLoading(false);
-        return;
-      }
-      loginAdmin(adminUser, 'jwt_access_mock_' + Date.now());
-    }, 1200);
+
+      const adminUser = {
+        id: data.admin.id,
+        fullName: `${data.admin.firstName} ${data.admin.lastName}`.trim(),
+        email: data.admin.email,
+      };
+
+      loginAdmin(adminUser, data.token);
+    } catch (err) {
+      console.error(err);
+      setApiError('Failed to connect to authentication server. Please try again.');
+      setIsLoading(false);
+    }
   };
 
   if (isAuthenticated) return null;
@@ -183,7 +201,7 @@ const AdminLogin: React.FC = () => {
             
           </form>
 
-          {!localStorage.getItem('petbuddy_admin_account') && (
+          {!isAdminRegistered && (
             <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
               Admin account not initialized? <Link to="/admin/signup" style={{ color: 'var(--primary)', fontWeight: '700', textDecoration: 'none' }}>Register</Link>
             </div>

@@ -136,14 +136,8 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
 
   // Styles
   const badgeBase = { padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '700' };
-  const avatarStyle = { width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'grid', placeItems: 'center', fontWeight: 'bold' };
-  const searchInputStyle = { width: '100%', padding: '10px 12px 10px 36px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '0.95rem', background: 'white' };
-  const tableContainerStyle = { backgroundColor: 'white', borderRadius: '12px', border: '1px solid var(--border)', overflow: 'hidden' };
-  const theadStyle = { backgroundColor: 'var(--bg-main)', borderBottom: '1px solid var(--border)' };
-  const rowStyle = { borderBottom: '1px solid var(--border)' };
-  const cellStyle: React.CSSProperties = { padding: '12px 16px', textAlign: 'left' };
+  const searchInputStyle = { width: '100%', padding: '10px 12px 10px 36px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '0.95rem', background: 'var(--bg-card)' };
   const noDataStyle: React.CSSProperties = { padding: '32px', textAlign: 'center', color: 'var(--text-muted)' };
-  const iconBtnStyle = { background: 'none', border: 'none', cursor: 'pointer', padding: '4px' };
 
   return (
     <>
@@ -187,52 +181,52 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
       </div>
 
       {/* Users Table */}
-      <div className="card" style={tableContainerStyle}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
-          <thead style={theadStyle}>
+      <div className="admin-table-container">
+        <table className="admin-table" style={{ minWidth: '800px' }}>
+          <thead>
             <tr>
-              <th style={cellStyle}>User</th>
-              <th style={cellStyle}>Contact</th>
-              <th style={cellStyle}>Location</th>
-              <th style={cellStyle}>Role</th>
-              <th style={cellStyle}>Registered</th>
-              <th style={cellStyle}>Status</th>
-              <th style={{ ...cellStyle, textAlign: 'right' }}>Actions</th>
+              <th>User</th>
+              <th>Contact</th>
+              <th>Location</th>
+              <th>Role</th>
+              <th>Registered</th>
+              <th>Status</th>
+              <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredUsers.map(user => (
-              <tr key={user.id} style={rowStyle}>
-                <td style={cellStyle}>
+              <tr key={user.id}>
+                <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ ...avatarStyle, backgroundColor: user.role === 'Pet Sitter' ? 'rgba(124, 58, 237, 0.12)' : 'var(--primary-light)', color: user.role === 'Pet Sitter' ? '#7c3aed' : 'var(--primary)' }}>
+                    <div className="table-avatar" style={{ backgroundColor: user.role === 'Pet Sitter' ? 'rgba(124, 58, 237, 0.12)' : 'var(--primary-light)', color: user.role === 'Pet Sitter' ? '#7c3aed' : 'var(--primary)' }}>
                       {user.fullName.charAt(0).toUpperCase()}
                     </div>
                     <span style={{ fontWeight: '600', color: 'var(--text-heading)' }}>{user.fullName}</span>
                   </div>
                 </td>
-                <td style={cellStyle}>
+                <td>
                   <div style={{ fontSize: '0.9rem', color: 'var(--text-heading)' }}>{user.email}</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{user.phone}</div>
                 </td>
-                <td style={cellStyle}>
+                <td>
                   <div style={{ fontSize: '0.9rem', color: 'var(--text-heading)' }}>{user.city}, {user.state}</div>
                 </td>
-                <td style={cellStyle}>
+                <td>
                   <span style={{ ...badgeBase, padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '700', backgroundColor: user.role === 'Pet Sitter' ? 'rgba(124, 58, 237, 0.12)' : 'rgba(59, 130, 246, 0.12)', color: user.role === 'Pet Sitter' ? '#7c3aed' : '#3b82f6' }}>
                     {user.role}
                   </span>
                 </td>
-                <td style={cellStyle}>{user.date}</td>
-                <td style={cellStyle}>
+                <td>{user.date}</td>
+                <td>
                   <span style={{ ...badgeBase, ...getBadgeStyle(user.status) }}>{user.status}</span>
                 </td>
-                <td style={{ ...cellStyle, textAlign: 'right' }}>
-                  <button onClick={() => console.log('View', user.id)} style={iconBtnStyle}><Eye size={18} /></button>
-                  <button onClick={() => handleToggleBlockUser(user.id)} style={iconBtnStyle}>
-                    {user.status === 'Blocked' ? <Ban size={18} color="var(--success)" /> : <Ban size={18} color="var(--danger)" />}
+                <td style={{ textAlign: 'right' }}>
+                  <button onClick={() => console.log('View', user.id)} className="action-btn" title="View Details"><Eye size={18} /></button>
+                  <button onClick={() => handleToggleBlockUser(user.id)} className={`action-btn ${user.status === 'Blocked' ? 'btn-success' : 'btn-danger'}`} title={user.status === 'Blocked' ? 'Unblock User' : 'Block User'}>
+                    <Ban size={18} />
                   </button>
-                  <button onClick={() => handleDeleteUser(user.id)} style={iconBtnStyle}><Trash2 size={18} color="var(--danger)" /></button>
+                  <button onClick={() => handleDeleteUser(user.id)} className="action-btn btn-danger" title="Delete User"><Trash2 size={18} /></button>
                 </td>
               </tr>
             ))}
@@ -252,9 +246,9 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
           padding: '20px'
         }}>
           <div className="animate-scale" style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.98)', borderRadius: '24px',
+            backgroundColor: 'var(--bg-card)', borderRadius: '24px',
             width: '100%', maxWidth: '540px', padding: '28px',
-            border: '1px solid rgba(255, 255, 255, 0.8)',
+            border: '1px solid var(--border)',
             boxShadow: '0 24px 60px -15px rgba(15, 23, 42, 0.18), 0 0 1px 1px rgba(15, 23, 42, 0.05)',
             position: 'relative',
             display: 'flex',
@@ -305,10 +299,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
                         width: '100%', padding: '10px 14px', borderRadius: '12px', 
                         border: '1.5px solid var(--border)', outline: 'none', fontSize: '0.92rem',
                         transition: 'all 0.2s ease-in-out',
-                        background: '#f8fafc'
+                        background: 'var(--bg-main)'
                       }} 
-                      onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--primary-light)'; }}
-                      onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.boxShadow = 'none'; }}
+                      onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.backgroundColor = 'var(--bg-card)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--primary-light)'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.backgroundColor = 'var(--bg-main)'; e.currentTarget.style.boxShadow = 'none'; }}
                       placeholder="e.g. John"
                     />
                   </div>
@@ -323,10 +317,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
                         width: '100%', padding: '10px 14px', borderRadius: '12px', 
                         border: '1.5px solid var(--border)', outline: 'none', fontSize: '0.92rem',
                         transition: 'all 0.2s ease-in-out',
-                        background: '#f8fafc'
+                        background: 'var(--bg-main)'
                       }} 
-                      onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--primary-light)'; }}
-                      onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.boxShadow = 'none'; }}
+                      onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.backgroundColor = 'var(--bg-card)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--primary-light)'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.backgroundColor = 'var(--bg-main)'; e.currentTarget.style.boxShadow = 'none'; }}
                       placeholder="e.g. Doe"
                     />
                   </div>
@@ -355,7 +349,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
                             padding: '10px 6px',
                             borderRadius: '12px',
                             border: isSelected ? '2px solid var(--primary)' : '1.5px solid var(--border)',
-                            backgroundColor: isSelected ? 'var(--primary-light)' : '#f8fafc',
+                            backgroundColor: isSelected ? 'var(--primary-light)' : 'var(--bg-main)',
                             cursor: 'pointer',
                             transition: 'all 0.2s ease-in-out',
                             textAlign: 'center'
@@ -390,10 +384,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
                         border: isEmailVerified ? '2px solid var(--success)' : '1.5px solid var(--border)', 
                         outline: 'none', fontSize: '0.92rem',
                         transition: 'all 0.2s ease-in-out',
-                        backgroundColor: isEmailVerified ? 'rgba(16, 185, 129, 0.05)' : '#f8fafc'
+                        backgroundColor: isEmailVerified ? 'rgba(16, 185, 129, 0.05)' : 'var(--bg-main)'
                       }} 
-                      onFocus={e => { if(!isEmailVerified) { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--primary-light)'; } }}
-                      onBlur={e => { if(!isEmailVerified) { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.boxShadow = 'none'; } }}
+                      onFocus={e => { if(!isEmailVerified) { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.backgroundColor = 'var(--bg-card)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--primary-light)'; } }}
+                      onBlur={e => { if(!isEmailVerified) { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.backgroundColor = 'var(--bg-main)'; e.currentTarget.style.boxShadow = 'none'; } }}
                       placeholder="e.g. john@example.com"
                     />
                     {!isEmailVerified ? (
@@ -444,7 +438,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
                             flex: 1, padding: '8px 12px', borderRadius: '8px', 
                             border: '1.5px solid var(--border)', outline: 'none', 
                             fontSize: '0.9rem', textAlign: 'center', letterSpacing: '4px',
-                            fontWeight: 'bold', background: 'white'
+                            fontWeight: 'bold', background: 'var(--bg-card)'
                           }}
                         />
                         <button 
@@ -480,10 +474,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
                       width: '100%', padding: '10px 14px', borderRadius: '12px', 
                       border: '1.5px solid var(--border)', outline: 'none', fontSize: '0.92rem',
                       transition: 'all 0.2s ease-in-out',
-                      background: '#f8fafc'
+                      background: 'var(--bg-main)'
                     }} 
-                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--primary-light)'; }}
-                    onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.boxShadow = 'none'; }}
+                    onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.backgroundColor = 'var(--bg-card)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--primary-light)'; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.backgroundColor = 'var(--bg-main)'; e.currentTarget.style.boxShadow = 'none'; }}
                     placeholder="e.g. +91 9948262033"
                   />
                 </div>
@@ -500,10 +494,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
                         width: '100%', padding: '10px 14px', borderRadius: '12px', 
                         border: '1.5px solid var(--border)', outline: 'none', fontSize: '0.92rem',
                         transition: 'all 0.2s ease-in-out',
-                        background: '#f8fafc'
+                        background: 'var(--bg-main)'
                       }} 
-                      onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--primary-light)'; }}
-                      onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.boxShadow = 'none'; }}
+                      onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.backgroundColor = 'var(--bg-card)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--primary-light)'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.backgroundColor = 'var(--bg-main)'; e.currentTarget.style.boxShadow = 'none'; }}
                       placeholder="e.g. Hyderabad"
                     />
                   </div>
@@ -517,10 +511,10 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
                         width: '100%', padding: '10px 14px', borderRadius: '12px', 
                         border: '1.5px solid var(--border)', outline: 'none', fontSize: '0.92rem',
                         transition: 'all 0.2s ease-in-out',
-                        background: '#f8fafc'
+                        background: 'var(--bg-main)'
                       }} 
-                      onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.backgroundColor = '#fff'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--primary-light)'; }}
-                      onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.boxShadow = 'none'; }}
+                      onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.backgroundColor = 'var(--bg-card)'; e.currentTarget.style.boxShadow = '0 0 0 3px var(--primary-light)'; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.backgroundColor = 'var(--bg-main)'; e.currentTarget.style.boxShadow = 'none'; }}
                       placeholder="e.g. Telangana"
                     />
                   </div>
@@ -537,11 +531,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
                   }}
                   style={{
                     flex: 1, padding: '12px', borderRadius: '12px', border: '1.5px solid var(--border)',
-                    backgroundColor: 'white', color: 'var(--text-main)', fontWeight: '700', cursor: 'pointer',
+                    backgroundColor: 'var(--bg-card)', color: 'var(--text-main)', fontWeight: '700', cursor: 'pointer',
                     transition: 'all 0.2s', fontSize: '0.92rem'
                   }}
-                  onMouseOver={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                  onMouseOut={e => e.currentTarget.style.backgroundColor = 'white'}
+                  onMouseOver={e => e.currentTarget.style.backgroundColor = 'var(--bg-main)'}
+                  onMouseOut={e => e.currentTarget.style.backgroundColor = 'var(--bg-card)'}
                 >
                   Cancel
                 </button>

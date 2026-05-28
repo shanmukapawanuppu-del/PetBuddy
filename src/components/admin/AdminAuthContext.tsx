@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_ROUTES } from '../../constants/apiConstants';
 
 interface AdminUser {
   id: string;
@@ -27,10 +28,18 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
   
   const navigate = useNavigate();
 
-  const checkRegistrationStatus = () => {
-    // Check if an admin is already registered in local storage mock DB
-    const storedAdmin = localStorage.getItem('petbuddy_admin_account');
-    setIsAdminRegistered(!!storedAdmin);
+  const checkRegistrationStatus = async () => {
+    try {
+      const response = await fetch(API_ROUTES.AUTH.CHECK);
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data, "response")
+        setIsAdminRegistered(data.registered);
+        console.log(isAdminRegistered, "isAdminRegistered")
+      }
+    } catch (e) {
+      console.error("Failed to check registration status", e);
+    }
   };
 
   useEffect(() => {
@@ -65,6 +74,7 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   const loginAdmin = (user: AdminUser, token: string) => {
+    localStorage.setItem('petbuddy_admin_account', JSON.stringify(user));
     localStorage.setItem('petbuddy_admin_access_token', token);
     localStorage.setItem('petbuddy_admin_refresh_token', 'mock_refresh_token_' + Date.now());
     
@@ -74,9 +84,15 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
     navigate('/admin/dashboard', { replace: true });
   };
 
-  const logoutAdmin = () => {
+  const logoutAdmin = async () => {
+    try {
+      await fetch(API_ROUTES.AUTH.LOGOUT, { method: 'POST' });
+    } catch (e) {
+      console.error("Failed to call logout API", e);
+    }
     localStorage.removeItem('petbuddy_admin_access_token');
     localStorage.removeItem('petbuddy_admin_refresh_token');
+    localStorage.removeItem('petbuddy_admin_account');
     
     setAdminUser(null);
     setIsAuthenticated(false);
