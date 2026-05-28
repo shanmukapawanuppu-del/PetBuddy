@@ -196,6 +196,51 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
     }
   };
 
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  const handleUpdateStatus = async (newStatus: string) => {
+    const targetId = id || propsRawSitter?._id || propsRawSitter?.id;
+    if (!targetId) return;
+
+    try {
+      setIsUpdatingStatus(true);
+      const token = localStorage.getItem('adminToken');
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const response = await fetch(API_ROUTES.DASHBOARD.UPDATE_STATUS(targetId), {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to update status');
+      }
+
+      if (id) {
+        setFetchedData((prev: any) => {
+          if (!prev) return prev;
+          const isDataNested = !!prev.data;
+          const rootData = prev.data || prev;
+          const isSitterNested = !!rootData.sitter;
+          
+          const updatedSitter = isSitterNested ? { ...rootData.sitter, status: newStatus } : { ...rootData, status: newStatus };
+          const updatedRoot = isSitterNested ? { ...rootData, sitter: updatedSitter } : updatedSitter;
+          return isDataNested ? { ...prev, data: updatedRoot } : updatedRoot;
+        });
+      } else {
+        alert(`Status updated to ${newStatus} successfully. Please refresh the page.`);
+      }
+    } catch (err: any) {
+      console.error('Error updating status:', err);
+      alert(err.message || 'Failed to update status. Please try again.');
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+  
   // ── Sidebar renderer (only used on the standalone route) ──────────────────
   const renderSidebar = () => (
     <aside
@@ -597,44 +642,43 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
             {sitter.status?.toLowerCase() === 'pending' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <button 
-                  onClick={() => console.log('Approve', sitter._id || sitter.id)} 
+                  onClick={() => handleUpdateStatus('APPROVED')} 
+                  disabled={isUpdatingStatus}
                   className="btn btn-primary"
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', fontWeight: '600' }}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', fontWeight: '600', opacity: isUpdatingStatus ? 0.7 : 1, cursor: isUpdatingStatus ? 'not-allowed' : 'pointer' }}
                 >
-                  <CheckCircle size={18} /> Approve & Verify
+                  {isUpdatingStatus ? <Loader2 size={18} className="spin" /> : <CheckCircle size={18} />} Approve Profile
                 </button>
                 <button 
-                  onClick={() => console.log('Reject', sitter._id || sitter.id)} 
-                  className="btn btn-danger"
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', fontWeight: '600' }}
+                  onClick={() => handleUpdateStatus('REJECTED')} 
+                  disabled={isUpdatingStatus}
+                  className="btn"
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', fontWeight: '600', backgroundColor: '#dc2626', color: 'white', border: 'none', transition: 'background-color 0.2s', opacity: isUpdatingStatus ? 0.7 : 1, cursor: isUpdatingStatus ? 'not-allowed' : 'pointer' }}
                 >
-                  <XCircle size={18} /> Reject Sitter
-                </button>
-                <button 
-                  onClick={() => console.log('Request Info', sitter._id || sitter.id)} 
-                  className="btn btn-secondary"
-                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', fontWeight: '600', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)' }}
-                >
-                  <FileText size={18} /> Request Info Update
+                  {isUpdatingStatus ? <Loader2 size={18} className="spin" /> : <XCircle size={18} />} Reject Profile
                 </button>
               </div>
             )}
 
-            {sitter.status?.toLowerCase() !== 'blocked' ? (
+            {sitter.status?.toLowerCase() === 'approved' && (
               <button 
-                onClick={() => console.log('Block', sitter._id || sitter.id)} 
+                onClick={() => handleUpdateStatus('BLOCKED')} 
+                disabled={isUpdatingStatus}
                 className="btn"
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', fontWeight: '600', backgroundColor: '#ef4444', color: 'white', border: 'none', cursor: 'pointer', transition: 'background-color 0.2s' }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', fontWeight: '600', backgroundColor: '#ef4444', color: 'white', border: 'none', transition: 'background-color 0.2s', opacity: isUpdatingStatus ? 0.7 : 1, cursor: isUpdatingStatus ? 'not-allowed' : 'pointer' }}
               >
-                <Ban size={18} /> Block Account
+                {isUpdatingStatus ? <Loader2 size={18} className="spin" /> : <Ban size={18} />} Block Account
               </button>
-            ) : (
+            )}
+
+            {sitter.status?.toLowerCase() === 'blocked' && (
               <button 
-                onClick={() => console.log('Unblock/Activate Sitter', sitter._id || sitter.id)} 
+                onClick={() => handleUpdateStatus('APPROVED')} 
+                disabled={isUpdatingStatus}
                 className="btn btn-primary"
-                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', fontWeight: '600' }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', fontWeight: '600', opacity: isUpdatingStatus ? 0.7 : 1, cursor: isUpdatingStatus ? 'not-allowed' : 'pointer' }}
               >
-                <CheckCircle size={18} /> Activate / Unblock
+                {isUpdatingStatus ? <Loader2 size={18} className="spin" /> : <CheckCircle size={18} />} Activate / Unblock
               </button>
             )}
           </div>
