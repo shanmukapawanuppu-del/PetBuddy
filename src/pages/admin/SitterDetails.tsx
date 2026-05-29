@@ -1,18 +1,14 @@
 import React, { useState } from 'react';
 import {
-  ChevronLeft, ChevronRight, Mail, Phone, Calendar, MapPin, Shield, Info,
-  CheckCircle, XCircle, Ban, FileText, User, AlertCircle, Loader2,
-  LayoutDashboard, Users, PawPrint, LogOut
+  ChevronLeft, ChevronRight, Mail, Phone, Calendar, MapPin, 
+  CheckCircle, XCircle, Ban, PawPrint, Loader2, User,Shield, Info, FileText, AlertCircle, LogOut
 } from 'lucide-react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
 import { API_ROUTES } from '../../constants/apiConstants';
 import './AdminDashboard.css';
 
-const _sidebarNavItems = [
-  { id: 'dashboard', name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-  { id: 'users',     name: 'Users',     path: '#',                 icon: Users },
-];
+import { adminSidebarNavItems } from '../../constants/adminNav';
 
 interface SitterDetailsProps {
   sitter?: any;
@@ -293,7 +289,7 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
 
       {/* Nav links */}
       <nav style={{ padding: '16px 0', flex: 1 }}>
-        {_sidebarNavItems.map(item => {
+        {adminSidebarNavItems.map(item => {
           const Icon = item.icon;
           return (
             <Link

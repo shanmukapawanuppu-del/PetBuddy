@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LogOut, Users, LayoutDashboard, Search, Eye, Ban, Trash2, CheckCircle, XCircle, Info, Filter, PawPrint, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { LogOut, Users, LayoutDashboard, Search, Eye, Ban, Trash2, CheckCircle, XCircle, Info, Filter, PawPrint, ChevronLeft, ChevronRight, AlertCircle, MessageSquare } from 'lucide-react';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
@@ -173,11 +173,17 @@ const StatusMessage: React.FC<StatusMessageProps> = ({ type, message, onRetry })
   );
 };
 
-const AdminDashboard: React.FC = () => {
+const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings' | 'payments' | 'settings' }> = ({ initialView = 'dashboard' }) => {
   const { adminUser, logoutAdmin } = useAdminAuth();
   const navigate = useNavigate();
 
-  const [currentView, setCurrentView] = useState<'dashboard' | 'users' | 'bookings' | 'payments' | 'settings'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'users' | 'bookings' | 'payments' | 'settings'>(
+    initialView
+  );
+
+  useEffect(() => {
+    setCurrentView(initialView);
+  }, [initialView]);
   const [selectedSitter, setSelectedSitter] = useState<any | null>(null);
   const [selectedOwner, setSelectedOwner] = useState<any | null>(null);
 
@@ -532,7 +538,8 @@ const AdminDashboard: React.FC = () => {
 
   const navItems = [
     { id: 'dashboard', name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-    { id: 'users', name: 'Users', path: '#', icon: Users },
+    { id: 'users', name: 'Users', path: '/admin/users', icon: Users },
+    { id: 'complaints', name: 'Support', path: '/admin/complaints', icon: MessageSquare },
   ];
 
   return (
@@ -599,10 +606,12 @@ const AdminDashboard: React.FC = () => {
               return (
                 <Link
                   key={item.name}
-                  to="#"
+                  to={item.path !== '#' ? item.path : '#'}
                   onClick={(e) => {
-                    e.preventDefault();
-                    setCurrentView(item.id as any);
+                    if (item.path === '#') {
+                      e.preventDefault();
+                      setCurrentView(item.id as any);
+                    }
                   }}
                   className={`sidebar-nav-link ${isActive ? 'active' : ''}`}
                   style={{
@@ -675,7 +684,7 @@ const AdminDashboard: React.FC = () => {
         <main className="admin-main">
           
         <div style={{ padding: '32px', flex: 1 }}>
-          {!selectedSitter && (
+          {!selectedSitter && currentView === 'dashboard' && (
             <div style={{ marginBottom: '32px' }}>
               <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.02em', marginBottom: '8px' }}>
                 {greeting}, {adminUser?.fullName.split(' ')[0]}!
@@ -991,8 +1000,8 @@ const AdminDashboard: React.FC = () => {
                                   </td>
                                   <td>{owner.createdAt ? new Date(owner.createdAt).toISOString().split('T')[0] : (owner.createdOn ? new Date(owner.createdOn).toISOString().split('T')[0] : '')}</td>
                                   <td>
-                                    <div style={{ fontSize: '0.9rem' }}><strong>{owner.pets ?? 0}</strong> Pets</div>
-                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{owner.bookings ?? 0} Bookings</div>
+                                    <div style={{ fontSize: '0.9rem' }}><strong>{owner.petsCount ?? 0}</strong> Pets</div>
+                                    <div style={{ fontSize: '0.85rem' }}><strong>{owner.bookingsCount ?? 0}</strong> Bookings</div>
                                   </td>
                                   <td>
                                     <span style={{ ...badgeBase, ...getBadgeStyle(owner.status) }}>{owner.status || 'ACTIVE'}</span>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ChevronLeft, ChevronRight, Mail, Phone, Calendar, MapPin, 
-  CheckCircle, XCircle, Ban, PawPrint, Loader2, LayoutDashboard, Users, User, Shield, CalendarCheck
+  ChevronLeft, ChevronRight, Mail, Phone, Calendar, 
+  CheckCircle, XCircle, Ban, PawPrint, Loader2, User, CalendarCheck,
 } from 'lucide-react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 // import { useAdminAuth } from '../../components/admin/AdminAuthContext';
@@ -42,10 +42,7 @@ const SafeImage = ({ src, alt, fallbackName }: { src: string, alt: string, fallb
   return <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={() => setHasError(true)} />;
 };
 
-const _sidebarNavItems = [
-  { id: 'dashboard', name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-  { id: 'users',     name: 'Users',     path: '#',                 icon: Users },
-];
+import { adminSidebarNavItems } from '../../constants/adminNav';
 
 export const OwnerDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -57,6 +54,7 @@ export const OwnerDetails: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [activeTab, setActiveTab] = useState<'pets' | 'bookings'>('pets');
 
   useEffect(() => {
     if (!id) {
@@ -144,10 +142,19 @@ export const OwnerDetails: React.FC = () => {
         </button>
       </div>
       <nav style={{ padding: '16px 0', flex: 1 }}>
-        {_sidebarNavItems.map(item => (
-          <Link key={item.name} to={item.path} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 24px', color: 'white', textDecoration: 'none', opacity: 0.8, transition: 'all 0.2s', justifyContent: isSidebarExpanded ? 'flex-start' : 'center', whiteSpace: 'nowrap' }}>
-            <item.icon size={20} style={{ flexShrink: 0 }} />
-            {isSidebarExpanded && <span style={{ fontWeight: '500' }}>{item.name}</span>}
+        {adminSidebarNavItems.map(item => (
+          <Link 
+            key={item.name} 
+            to={item.path} 
+            className={`sidebar-nav-link ${item.id === 'dashboard' ? 'active' : ''}`}
+            style={{ 
+              justifyContent: isSidebarExpanded ? 'flex-start' : 'center', 
+              gap: isSidebarExpanded ? '12px' : '0' 
+            }}
+            title={!isSidebarExpanded ? item.name : undefined}
+          >
+            <item.icon size={20} className="nav-icon" />
+            {isSidebarExpanded && <span style={{ whiteSpace: 'nowrap' }}>{item.name}</span>}
           </Link>
         ))}
       </nav>
@@ -171,7 +178,7 @@ export const OwnerDetails: React.FC = () => {
   };
 
   const content = (
-    <div style={{ animation: 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)', maxWidth: '1400px', margin: '0 auto', width: '100%', minHeight: '100%' }}>
+    <div style={{ animation: 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)', margin: '0 auto', width: '100%', minHeight: '100%' }}>
       {loading ? (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '400px', gap: '16px' }}>
           <Loader2 size={40} className="spin" color="var(--primary)" />
@@ -355,70 +362,84 @@ export const OwnerDetails: React.FC = () => {
               </div>
             </div>
 
-            {/* PETS SHOWCASE ROW (Span 6 cols, auto row) */}
-            <div style={{ ...bentoCardStyle, gridColumn: 'span 6', padding: '40px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-                <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text-heading)', margin: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <PawPrint size={24} color="var(--primary)" /> Registered Pets
-                </h3>
-                <div style={{ background: 'var(--primary-light)', color: 'var(--primary)', padding: '6px 16px', borderRadius: '30px', fontSize: '0.9rem', fontWeight: '800' }}>
-                  {owner.pets?.length || 0} Total
-                </div>
+            {/* PETS & BOOKINGS TABS SHOWCASE (Span 12 cols, auto row) */}
+            <div style={{ ...bentoCardStyle, gridColumn: 'span 12', padding: '40px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '32px', borderBottom: '2px solid rgba(0,0,0,0.05)', marginBottom: '32px', paddingLeft: '16px' }}>
+                <button
+                  onClick={() => setActiveTab('pets')}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 16px 0', fontSize: '1.2rem', fontWeight: '800',
+                    color: activeTab === 'pets' ? 'var(--text-heading)' : 'var(--text-muted)',
+                    borderBottom: activeTab === 'pets' ? '3px solid var(--primary)' : '3px solid transparent',
+                    display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s', marginBottom: '-2px'
+                  }}
+                >
+                  <PawPrint size={24} color={activeTab === 'pets' ? 'var(--text-heading)' : 'var(--text-muted)'} /> 
+                  Registered Pets
+                  <span style={{ background: activeTab === 'pets' ? 'var(--primary-light)' : 'rgba(0,0,0,0.05)', color: activeTab === 'pets' ? 'var(--primary)' : 'var(--text-muted)', padding: '4px 12px', borderRadius: '30px', fontSize: '0.8rem', fontWeight: '800' }}>
+                    {owner.pets?.length || 0} Total
+                  </span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('bookings')}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 16px 0', fontSize: '1.2rem', fontWeight: '800',
+                    color: activeTab === 'bookings' ? 'var(--text-heading)' : 'var(--text-muted)',
+                    borderBottom: activeTab === 'bookings' ? '3px solid var(--secondary)' : '3px solid transparent',
+                    display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s', marginBottom: '-2px'
+                  }}
+                >
+                  <CalendarCheck size={24} color={activeTab === 'bookings' ? 'var(--secondary)' : 'var(--text-muted)'} /> 
+                  Recent Bookings
+                  <span style={{ background: activeTab === 'bookings' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(0,0,0,0.05)', color: activeTab === 'bookings' ? 'var(--secondary)' : 'var(--text-muted)', padding: '4px 12px', borderRadius: '30px', fontSize: '0.8rem', fontWeight: '800' }}>
+                    0 Total
+                  </span>
+                </button>
               </div>
 
-              {Array.isArray(owner.pets) && owner.pets.length > 0 ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
-                  {owner.pets.map((pet: any, idx: number) => (
-                    <div key={idx} style={{ 
-                      background: 'white', borderRadius: '24px', padding: '24px', border: '1px solid rgba(0,0,0,0.03)', 
-                      boxShadow: '0 10px 30px rgba(0,0,0,0.03)', display: 'flex', gap: '24px', alignItems: 'center',
-                      transition: 'transform 0.2s', cursor: 'pointer'
-                    }}
-                    onMouseOver={e => (e.currentTarget.style.transform = 'translateY(-4px)')}
-                    onMouseOut={e => (e.currentTarget.style.transform = 'translateY(0)')}
-                    >
-                      <div style={{ width: '90px', height: '90px', borderRadius: '24px', overflow: 'hidden', flexShrink: 0 }}>
-                        <SafeImage src={formatImageSrc(pet.photo)} alt={pet.name} fallbackName={pet.name || 'Pet'} />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <h4 style={{ margin: '0 0 8px 0', fontSize: '1.3rem', color: 'var(--text-heading)', fontWeight: '800' }}>{pet.name || 'Unnamed Pet'}</h4>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>
-                          <span>{pet.breed || 'Unknown Breed'}</span>
-                          <span style={{ opacity: 0.8 }}>{pet.age ? pet.age + ' yrs' : 'Age N/A'} • {pet.gender || 'N/A'}</span>
+              {activeTab === 'pets' ? (
+                Array.isArray(owner.pets) && owner.pets.length > 0 ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+                    {owner.pets.map((pet: any, idx: number) => (
+                      <div key={idx} style={{ 
+                        background: 'white', borderRadius: '24px', padding: '24px', border: '1px solid rgba(0,0,0,0.03)', 
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.03)', display: 'flex', gap: '24px', alignItems: 'center',
+                        transition: 'transform 0.2s', cursor: 'pointer'
+                      }}
+                      onMouseOver={e => (e.currentTarget.style.transform = 'translateY(-4px)')}
+                      onMouseOut={e => (e.currentTarget.style.transform = 'translateY(0)')}
+                      >
+                        <div style={{ width: '90px', height: '90px', borderRadius: '24px', overflow: 'hidden', flexShrink: 0 }}>
+                          <SafeImage src={formatImageSrc(pet.photo)} alt={pet.name} fallbackName={pet.name || 'Pet'} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <h4 style={{ margin: '0 0 8px 0', fontSize: '1.3rem', color: 'var(--text-heading)', fontWeight: '800' }}>{pet.name || 'Unnamed Pet'}</h4>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: '600' }}>
+                            <span>{pet.breed || 'Unknown Breed'}</span>
+                            <span style={{ opacity: 0.8 }}>{pet.age ? pet.age + ' yrs' : 'Age N/A'} • {pet.gender || 'N/A'}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', background: 'rgba(0,0,0,0.02)', borderRadius: '24px', border: '2px dashed rgba(0,0,0,0.05)', color: 'var(--text-muted)', height: '100%', minHeight: '250px' }}>
+                    <PawPrint size={48} style={{ marginBottom: '16px', opacity: 0.2 }} />
+                    <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-heading)', fontSize: '1.2rem', fontWeight: '800' }}>No Pets Found</h4>
+                    <p style={{ margin: 0, textAlign: 'center', maxWidth: '400px', lineHeight: 1.5, fontWeight: '500' }}>
+                      This owner hasn't registered any pets yet.
+                    </p>
+                  </div>
+                )
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', background: 'rgba(0,0,0,0.02)', borderRadius: '24px', border: '2px dashed rgba(0,0,0,0.05)', color: 'var(--text-muted)', height: '100%', minHeight: '250px' }}>
-                  <PawPrint size={48} style={{ marginBottom: '16px', opacity: 0.2 }} />
-                  <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-heading)', fontSize: '1.2rem', fontWeight: '800' }}>No Pets Found</h4>
+                  <CalendarCheck size={48} style={{ marginBottom: '16px', opacity: 0.2 }} />
+                  <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-heading)', fontSize: '1.2rem', fontWeight: '800' }}>No Bookings Found</h4>
                   <p style={{ margin: 0, textAlign: 'center', maxWidth: '400px', lineHeight: 1.5, fontWeight: '500' }}>
-                    This owner hasn't registered any pets yet.
+                    This owner hasn't made any bookings yet.
                   </p>
                 </div>
               )}
-            </div>
-
-            {/* BOOKINGS SHOWCASE ROW (Span 6 cols, auto row) */}
-            <div style={{ ...bentoCardStyle, gridColumn: 'span 6', padding: '40px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-                <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--text-heading)', margin: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <CalendarCheck size={24} color="var(--secondary)" /> Recent Bookings
-                </h3>
-                <div style={{ background: 'rgba(245, 158, 11, 0.1)', color: 'var(--secondary)', padding: '6px 16px', borderRadius: '30px', fontSize: '0.9rem', fontWeight: '800' }}>
-                  0 Total
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', background: 'rgba(0,0,0,0.02)', borderRadius: '24px', border: '2px dashed rgba(0,0,0,0.05)', color: 'var(--text-muted)', height: '100%', minHeight: '250px' }}>
-                <CalendarCheck size={48} style={{ marginBottom: '16px', opacity: 0.2 }} />
-                <h4 style={{ margin: '0 0 8px 0', color: 'var(--text-heading)', fontSize: '1.2rem', fontWeight: '800' }}>No Bookings Found</h4>
-                <p style={{ margin: 0, textAlign: 'center', maxWidth: '400px', lineHeight: 1.5, fontWeight: '500' }}>
-                  This owner hasn't made any bookings yet.
-                </p>
-              </div>
             </div>
             
           </div>

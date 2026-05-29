@@ -25,6 +25,8 @@ import AdminResetPassword from './pages/admin/AdminResetPassword';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import { SitterDetails } from './pages/admin/SitterDetails';
 import { OwnerDetails } from './pages/admin/OwnerDetails';
+import { ComplaintsList } from './pages/admin/ComplaintsList';
+import { ComplaintDetails } from './pages/admin/ComplaintDetails';
 
 // Scroll Restoration UX Helper
 const ScrollToTop: React.FC = () => {
@@ -88,9 +90,12 @@ const App: React.FC = () => {
 
           {/* Admin Protected Routes */}
           <Route element={<ProtectedRoute />}>
-            <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard /></AdminLayout>} />
+            <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard initialView="dashboard" /></AdminLayout>} />
+            <Route path="/admin/users" element={<AdminLayout><AdminDashboard initialView="users" /></AdminLayout>} />
             <Route path="/admin/sitters/:id" element={<AdminLayout><SitterDetails /></AdminLayout>} />
             <Route path="/admin/owners/:id" element={<AdminLayout><OwnerDetails /></AdminLayout>} />
+            <Route path="/admin/complaints" element={<AdminLayout><ComplaintsList /></AdminLayout>} />
+            <Route path="/admin/complaints/:ticketId" element={<AdminLayout><ComplaintDetails /></AdminLayout>} />
           </Route>
 
           {/* Catch All */}
