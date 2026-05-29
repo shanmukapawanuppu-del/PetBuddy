@@ -14,10 +14,14 @@ export const API_ROUTES = {
     UPDATE_PROFILE: `${API_BASE_URL}/admin/profile`,
   },
   DASHBOARD: {
-    DASHBOARD_STATS: `${API_BASE_URL}/dashboard/sitters/stats`,
     SITTERS_LIST: `${API_BASE_URL}/dashboard/sitters`,
-    OWNERS_LIST: `${API_BASE_URL}/dashboard/owners`,
     UPDATE_STATUS: (id: string | number) => `${API_BASE_URL}/dashboard/sitters/${id}/status`,
     SITTER_INFO: (id: string | number) => `${API_BASE_URL}/dashboard/sitters/${id}`,
+
+    OWNERS_LIST: `${API_BASE_URL}/dashboard/owners`,
+    OWNER_STATUS: (id: string | number) => `${API_BASE_URL}/dashboard/owners/${id}/status`,
+    OWNER_INFO: (id: string | number) => `${API_BASE_URL}/dashboard/owners/${id}`,
+    OWNER_DELETE: (id: string | number) => `${API_BASE_URL}/dashboard/owners/${id}`,
+
   }
 };

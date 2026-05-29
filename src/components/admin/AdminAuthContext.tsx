@@ -12,6 +12,7 @@ interface AdminUser {
 interface AdminAuthContextType {
   isAdminRegistered: boolean;
   isAuthenticated: boolean;
+  isLoadingAuth: boolean;
   adminUser: AdminUser | null;
   registerAdmin: (user: AdminUser, token: string) => void;
   loginAdmin: (user: AdminUser, token: string) => void;
@@ -24,6 +25,7 @@ const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefin
 export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isAdminRegistered, setIsAdminRegistered] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   
   const navigate = useNavigate();
@@ -58,6 +60,8 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
         console.error("Failed to parse admin data", e);
       }
     }
+    
+    setIsLoadingAuth(false);
   }, []);
 
   const registerAdmin = (user: AdminUser, token: string) => {
@@ -104,6 +108,7 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
     <AdminAuthContext.Provider value={{
       isAdminRegistered,
       isAuthenticated,
+      isLoadingAuth,
       adminUser,
       registerAdmin,
       loginAdmin,
