@@ -179,9 +179,19 @@ const AdminDashboard: React.FC = () => {
 
   const [currentView, setCurrentView] = useState<'dashboard' | 'users' | 'bookings' | 'payments' | 'settings'>('dashboard');
   const [selectedSitter, setSelectedSitter] = useState<any | null>(null);
+  const [selectedOwner, setSelectedOwner] = useState<any | null>(null);
+
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  // Tab State
   const [greeting, setGreeting] = useState('');
-  const [activeTab, setActiveTab] = useState<'owners' | 'sitters'>('sitters');
+  const [activeTab, setActiveTab] = useState<'owners' | 'sitters'>(() => {
+    return (sessionStorage.getItem('petbuddy_admin_tab') as 'owners' | 'sitters') || 'sitters';
+  });
+
+  // Persist active tab to session storage
+  useEffect(() => {
+    sessionStorage.setItem('petbuddy_admin_tab', activeTab);
+  }, [activeTab]);
   const [ownerSearch, setOwnerSearch] = useState('');
   const [sitterSearch, setSitterSearch] = useState('');
 
@@ -199,7 +209,6 @@ const AdminDashboard: React.FC = () => {
     verified: 0,
     rejected: 0,
     blocked: 0,
-    inactive: 0,
   });
 
   const [sittersList, setSittersList] = useState<any[]>([]);
@@ -225,6 +234,9 @@ const AdminDashboard: React.FC = () => {
   const [ownerError, setOwnerError] = useState<string | null>(null);
   const [sitterError, setSitterError] = useState<string | null>(null);
 
+  const [isSittersLoading, setIsSittersLoading] = useState(true);
+  const [isOwnersLoading, setIsOwnersLoading] = useState(true);
+
   const [appliedOwnerFilter, setAppliedOwnerFilter] = useState('All');
   const [appliedOwnerSort, setAppliedOwnerSort] = useState('newest');
   const [appliedOwnerCity, setAppliedOwnerCity] = useState('All');
@@ -244,8 +256,9 @@ const AdminDashboard: React.FC = () => {
     return () => clearTimeout(timer);
   }, [ownerSearch]);
 
-  const fetchSitters = async () => {
+  const fetchSitters = async (signal?: AbortSignal) => {
     try {
+      setIsSittersLoading(true);
       setSitterError(null);
       const queryParams = new URLSearchParams();
       if (debouncedSitterSearch.trim()) {
@@ -259,7 +272,11 @@ const AdminDashboard: React.FC = () => {
       queryParams.append('limit', sitterLimit.toString());
 
       const url = `${API_ROUTES.DASHBOARD.SITTERS_LIST}?${queryParams.toString()}`;
-      const response = await fetch(url);
+      const token = localStorage.getItem('petbuddy_admin_access_token');
+      const response = await fetch(url, { 
+        signal,
+        headers: token ? { 'Authorization': `Bearer ${token}` } : undefined
+      });
       if (response.ok) {
         const data = await response.json();
         const sitters = data.data || data;
@@ -271,21 +288,38 @@ const AdminDashboard: React.FC = () => {
         if (data.pagination) {
           setSitterTotalPages(data.pagination.pages || 1);
         }
+        if (data.stats) {
+          setSitterCounts({
+            total: typeof data.stats.total === 'number' ? data.stats.total : 0,
+            pending: typeof data.stats.pending === 'number' ? data.stats.pending : 0,
+            verified: typeof data.stats.verified === 'number' ? data.stats.verified : 0,
+            rejected: typeof data.stats.rejected === 'number' ? data.stats.rejected : 0,
+            blocked: typeof data.stats.blocked === 'number' ? data.stats.blocked : 0,
+          });
+        }
       } else {
         setSitterError(`Server responded with code ${response.status}`);
       }
     } catch (e: any) {
+      if (e.name === 'AbortError') return;
       console.error("Failed to fetch sitters list", e);
       setSitterError(e.message || "Network request failed. Please verify connection.");
+    } finally {
+      setIsSittersLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchSitters();
-  }, [debouncedSitterSearch, appliedSitterFilter, sitterPage, sitterLimit]);
+    if (activeTab === 'sitters') {
+      const controller = new AbortController();
+      fetchSitters(controller.signal);
+      return () => controller.abort();
+    }
+  }, [activeTab, debouncedSitterSearch, appliedSitterFilter, sitterPage, sitterLimit]);
 
-  const fetchOwners = async () => {
+  const fetchOwners = async (signal?: AbortSignal) => {
     try {
+      setIsOwnersLoading(true);
       setOwnerError(null);
       const queryParams = new URLSearchParams();
       if (debouncedOwnerSearch.trim()) {
@@ -298,7 +332,11 @@ const AdminDashboard: React.FC = () => {
       queryParams.append('limit', ownerLimit.toString());
 
       const url = `${API_ROUTES.DASHBOARD.OWNERS_LIST}?${queryParams.toString()}`;
-      const response = await fetch(url);
+      const token = localStorage.getItem('petbuddy_admin_access_token');
+      const response = await fetch(url, { 
+        signal,
+        headers: token ? { 'Authorization': `Bearer ${token}` } : undefined
+      });
       if (response.ok) {
         const data = await response.json();
         const owners = data.data || data;
@@ -326,42 +364,73 @@ const AdminDashboard: React.FC = () => {
         setOwnerError(`Server responded with code ${response.status}`);
       }
     } catch (e: any) {
+      if (e.name === 'AbortError') return;
       console.error("Failed to fetch owners list", e);
       setOwnerError(e.message || "Network request failed. Please verify connection.");
+    } finally {
+      setIsOwnersLoading(false);
+    }
+  };
+
+  const handleToggleOwnerStatus = async (id: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === 'ACTIVE' ? 'BLOCKED' : 'ACTIVE';
+      const token = localStorage.getItem('petbuddy_admin_access_token');
+      const response = await fetch(API_ROUTES.DASHBOARD.OWNER_STATUS(id), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      if (response.ok) {
+        fetchOwners();
+        if (selectedOwner && (selectedOwner._id === id || selectedOwner.id === id)) {
+          setSelectedOwner({ ...selectedOwner, status: newStatus });
+        }
+      } else {
+        alert('Failed to update owner status');
+      }
+    } catch (e) {
+      console.error('Failed to update status', e);
+      alert('An error occurred while updating owner status');
+    }
+  };
+
+  const handleDeleteOwner = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this owner? This action cannot be undone.')) return;
+    try {
+      const token = localStorage.getItem('petbuddy_admin_access_token');
+      const response = await fetch(API_ROUTES.DASHBOARD.OWNER_DELETE(id), {
+        method: 'DELETE',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : undefined
+      });
+      
+      if (response.ok) {
+        fetchOwners();
+        if (selectedOwner && (selectedOwner._id === id || selectedOwner.id === id)) {
+          setSelectedOwner(null);
+        }
+      } else {
+        alert('Failed to delete owner');
+      }
+    } catch (e) {
+      console.error('Failed to delete owner', e);
+      alert('An error occurred while deleting owner');
     }
   };
 
   useEffect(() => {
-    // fetchOwners();
-  }, [debouncedOwnerSearch, appliedOwnerFilter, ownerPage, ownerLimit]);
+    if (activeTab === 'owners') {
+      const controller = new AbortController();
+      fetchOwners(controller.signal);
+      return () => controller.abort();
+    }
+  }, [activeTab, debouncedOwnerSearch, appliedOwnerFilter, ownerPage, ownerLimit]);
 
-  const statsFetchedRef = useRef(false);
-
-  useEffect(() => {
-    if (statsFetchedRef.current) return;
-    statsFetchedRef.current = true;
-
-    const fetchStats = async () => {
-      try {
-        const response = await fetch(API_ROUTES.DASHBOARD.DASHBOARD_STATS);
-        if (response.ok) {
-          const data = await response.json();
-          const stats = data.stats || data;
-          setSitterCounts({
-            total: typeof stats.total === 'number' ? stats.total : 0,
-            pending: typeof stats.pending === 'number' ? stats.pending : 0,
-            verified: typeof (stats.verified || stats.approved) === 'number' ? (stats.verified || stats.approved) : 0,
-            rejected: typeof stats.rejected === 'number' ? stats.rejected : 0,
-            blocked: typeof stats.blocked === 'number' ? stats.blocked : 0,
-            inactive: typeof stats.inactive === 'number' ? stats.inactive : 0,
-          });
-        }
-      } catch (e) {
-        console.error("Failed to fetch dashboard stats", e);
-      }
-    };
-    fetchStats();
-  }, []);
+  // Stats are now fetched alongside sitters list
 
 
 
@@ -423,7 +492,7 @@ const AdminDashboard: React.FC = () => {
       const matchesSearch = getOwnerName(o).toLowerCase().includes(ownerSearch.toLowerCase()) ||
         o.email.toLowerCase().includes(ownerSearch.toLowerCase()) ||
         (o.phone || o.phoneNumber || '').includes(ownerSearch);
-      const matchesFilter = appliedOwnerFilter === 'All' || o.status === appliedOwnerFilter;
+      const matchesFilter = appliedOwnerFilter === 'All' || o.status?.toUpperCase() === appliedOwnerFilter.toUpperCase();
       const matchesCity = appliedOwnerCity === 'All' || o.city === appliedOwnerCity;
       const matchesState = appliedOwnerState === 'All' || o.state === appliedOwnerState;
       return matchesSearch && matchesFilter && matchesCity && matchesState;
@@ -444,8 +513,9 @@ const AdminDashboard: React.FC = () => {
       const sitterCity = s.address?.city || s.city;
       const sitterState = s.address?.state || s.state;
       const matchesCity = appliedSitterCity === 'All' || sitterCity === appliedSitterCity;
+      const matchesFilter = appliedSitterFilter === 'All' || s.status?.toUpperCase() === appliedSitterFilter.toUpperCase();
       const matchesState = appliedSitterState === 'All' || sitterState === appliedSitterState;
-      return matchesCity && matchesState;
+      return matchesCity && matchesFilter && matchesState;
     })
     .sort((a, b) => {
       const aDate = a.date || a.createdOn || '';
@@ -459,10 +529,7 @@ const AdminDashboard: React.FC = () => {
 
   // Reusable style objects
   const badgeBase = { padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '700' };
-  const searchInputStyle = { width: '100%', padding: '10px 12px 10px 36px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '0.95rem', background: 'var(--bg-card)' };
-  const tabButton = (active: boolean) => ({
-    padding: '8px 16px', border: 'none', borderBottom: active ? '2px solid var(--primary)' : '2px solid transparent', background: 'transparent', color: active ? 'var(--primary)' : 'var(--text-muted)', fontWeight: active ? '600' : '500', cursor: 'pointer'
-  })
+  const searchInputStyle = { width: '100%', padding: '10px 12px 10px 36px', borderRadius: '25px', border: '1px solid var(--border)', fontSize: '0.95rem', background: 'var(--bg-card)' };
 
     const navItems = [
       { id: 'bookings', name: 'Bookings', path: '/admin/bookings', icon: Calendar },
@@ -608,10 +675,14 @@ const AdminDashboard: React.FC = () => {
           
         <div style={{ padding: '32px', flex: 1 }}>
           {!selectedSitter && (
-            <>
-              <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--text-heading)' }}>{greeting}, {adminUser?.fullName.split(' ')[0]}!</h1>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Here's what's happening in your platform today.</p>
-            </>
+            <div style={{ marginBottom: '32px' }}>
+              <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.02em', marginBottom: '8px' }}>
+                {greeting}, {adminUser?.fullName.split(' ')[0]}!
+              </h1>
+              <p style={{ color: '#64748b', fontSize: '1.15rem', margin: 0 }}>
+                Here's what's happening in your platform today.
+              </p>
+            </div>
           )}
 
           {/* Tabs */}
@@ -627,31 +698,81 @@ const AdminDashboard: React.FC = () => {
               />
             ) : (
               <>
-                {/* Tabs */}
-                <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-                  <button onClick={() => setActiveTab('sitters')} style={tabButton(activeTab === 'sitters')}>Pet Sitters</button>
-                  <button onClick={() => setActiveTab('owners')} style={tabButton(activeTab === 'owners')}>Pet Owners</button>
+                {/* Premium Tab Button Group */}
+                <div style={{ display: 'inline-flex', background: '#f1f5f9', padding: '6px', borderRadius: '16px', marginBottom: '36px', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.04)' }}>
+                  <button 
+                    onClick={() => setActiveTab('sitters')} 
+                    className={`premium-tab-btn ${activeTab === 'sitters' ? 'active' : ''}`}
+                  >
+                    Pet Sitters
+                  </button>
+                  <button 
+                    onClick={() => setActiveTab('owners')} 
+                    className={`premium-tab-btn ${activeTab === 'owners' ? 'active' : ''}`}
+                  >
+                    Pet Owners
+                  </button>
                 </div>
 
                 {activeTab === 'owners' && (
                   <>
                     {/* Summary Cards Grid */}
-                    <div className="grid-4" style={{ marginBottom: '32px' }}>
+                    <div className="grid-4" style={{ marginBottom: '40px' }}>
                       <div className="owner-card card-total-owners">
-                        <p className="card-label">Total Pet Owners</p>
-                        <h3 className="card-value">{ownerCounts.total}</h3>
+                        <Users className="card-bg-icon" />
+                        <div className="card-content">
+                          <div className="card-header">
+                            <div className="icon-wrapper">
+                              <Users size={20} />
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="card-value">{ownerCounts.total}</h3>
+                            <p className="card-label">Total Owners</p>
+                          </div>
+                        </div>
                       </div>
                       <div className="owner-card card-active-owners">
-                        <p className="card-label">Active Owners</p>
-                        <h3 className="card-value">{ownerCounts.active}</h3>
+                        <CheckCircle className="card-bg-icon" />
+                        <div className="card-content">
+                          <div className="card-header">
+                            <div className="icon-wrapper">
+                              <CheckCircle size={20} />
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="card-value">{ownerCounts.active}</h3>
+                            <p className="card-label">Active Owners</p>
+                          </div>
+                        </div>
                       </div>
                       <div className="owner-card card-blocked-owners">
-                        <p className="card-label">Blocked Owners</p>
-                        <h3 className="card-value">{ownerCounts.blocked}</h3>
+                        <Ban className="card-bg-icon" />
+                        <div className="card-content">
+                          <div className="card-header">
+                            <div className="icon-wrapper">
+                              <Ban size={20} />
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="card-value">{ownerCounts.blocked}</h3>
+                            <p className="card-label">Blocked Owners</p>
+                          </div>
+                        </div>
                       </div>
                       <div className="owner-card card-pets-owners">
-                        <p className="card-label">Registered Pets</p>
-                        <h3 className="card-value">{ownerCounts.pets}</h3>
+                        <PawPrint className="card-bg-icon" />
+                        <div className="card-content">
+                          <div className="card-header">
+                            <div className="icon-wrapper">
+                              <PawPrint size={20} />
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="card-value">{ownerCounts.pets}</h3>
+                            <p className="card-label">Registered Pets</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -822,7 +943,15 @@ const AdminDashboard: React.FC = () => {
                     </div>
 
                     {/* Owners Table / Status Messages */}
-                    {ownerError ? (
+                    {(isOwnersLoading && ownersList.length === 0) ? (
+                      <div className="premium-loader-container">
+                        <div className="paw-pulse-wrapper">
+                          <div className="paw-pulse-ring"></div>
+                          <PawPrint size={48} className="paw-icon bouncing" color="var(--primary)" />
+                        </div>
+                        <p className="loading-text">Loading Owners...</p>
+                      </div>
+                    ) : ownerError ? (
                       <StatusMessage type="error" message={ownerError} onRetry={fetchOwners} />
                     ) : filteredOwners.length === 0 ? (
                       <StatusMessage type="empty" message="No pet owners found matching your criteria. Try adjusting your filters or search terms." />
@@ -841,32 +970,36 @@ const AdminDashboard: React.FC = () => {
                               </tr>
                             </thead>
                             <tbody>
-                              {filteredOwners.map(owner => (
-                                <tr key={owner.id}>
+                              {filteredOwners.map((owner: any) => (
+                                <tr key={owner._id || owner.id}>
                                   <td>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                      <div className="table-avatar">
-                                        {owner.avatar || getOwnerName(owner).charAt(0).toUpperCase()}
+                                      <div className="table-avatar" style={{ overflow: 'hidden' }}>
+                                        {owner.profilePicture ? (
+                                          <img src={owner.profilePicture} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (
+                                          getOwnerName(owner).charAt(0).toUpperCase()
+                                        )}
                                       </div>
                                       <span style={{ fontWeight: '600', color: 'var(--text-heading)' }}>{getOwnerName(owner)}</span>
                                     </div>
                                   </td>
                                   <td>
                                     <div style={{ fontSize: '0.9rem', color: 'var(--text-heading)' }}>{owner.email}</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{owner.phone || owner.phoneNumber}</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{owner.countryCode} {owner.phoneNumber || owner.phone}</div>
                                   </td>
-                                  <td>{owner.date || (owner.createdOn ? new Date(owner.createdOn).toISOString().split('T')[0] : '')}</td>
+                                  <td>{owner.createdAt ? new Date(owner.createdAt).toISOString().split('T')[0] : (owner.createdOn ? new Date(owner.createdOn).toISOString().split('T')[0] : '')}</td>
                                   <td>
                                     <div style={{ fontSize: '0.9rem' }}><strong>{owner.pets ?? 0}</strong> Pets</div>
                                     <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{owner.bookings ?? 0} Bookings</div>
                                   </td>
                                   <td>
-                                    <span style={{ ...badgeBase, ...getBadgeStyle(owner.status) }}>{owner.status}</span>
+                                    <span style={{ ...badgeBase, ...getBadgeStyle(owner.status) }}>{owner.status || 'ACTIVE'}</span>
                                   </td>
                                   <td style={{ textAlign: 'right' }}>
-                                    <button onClick={() => console.log('View', owner.id)} className="action-btn" title="View Details"><Eye size={18} /></button>
-                                    <button onClick={() => console.log('Toggle block', owner.id)} className={`action-btn ${owner.status === 'Active' ? 'btn-danger' : 'btn-success'}`} title={owner.status === 'Active' ? 'Block Owner' : 'Unblock Owner'}><Ban size={18} /></button>
-                                    <button onClick={() => console.log('Delete', owner.id)} className="action-btn btn-danger" title="Delete Owner"><Trash2 size={18} /></button>
+                                    <button onClick={() => navigate(`/admin/owners/${owner._id || owner.id}`)} className="view-details-btn" title="View Details"><Eye size={16} /> View Details</button>
+                                    <button onClick={() => handleToggleOwnerStatus(owner._id || owner.id, owner.status || 'ACTIVE')} className={`action-btn ${(!owner.status || owner.status === 'ACTIVE') ? 'btn-danger' : 'btn-success'}`} title={(!owner.status || owner.status === 'ACTIVE') ? 'Block Owner' : 'Unblock Owner'}><Ban size={18} /></button>
+                                    <button onClick={() => handleDeleteOwner(owner._id || owner.id)} className="action-btn btn-danger" title="Delete Owner"><Trash2 size={18} /></button>
                                   </td>
                                 </tr>
                               ))}
@@ -963,30 +1096,76 @@ const AdminDashboard: React.FC = () => {
                 {activeTab === 'sitters' && (
                   <>
                     {/* Summary Cards Grid */}
-                    <div className="grid-4" style={{ marginBottom: '32px' }}>
+                    <div className="grid-5" style={{ marginBottom: '40px' }}>
                       <div className="sitter-card card-total">
-                        <p className="card-label">Total Sitters</p>
-                        <h3 className="card-value">{sitterCounts.total}</h3>
+                        <Users className="card-bg-icon" />
+                        <div className="card-content">
+                          <div className="card-header">
+                            <div className="icon-wrapper">
+                              <Users size={20} />
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="card-value">{sitterCounts.total}</h3>
+                            <p className="card-label">Total Sitters</p>
+                          </div>
+                        </div>
                       </div>
                       <div className="sitter-card card-pending">
-                        <p className="card-label">Pending Sitters</p>
-                        <h3 className="card-value">{sitterCounts.pending}</h3>
+                        <AlertCircle className="card-bg-icon" />
+                        <div className="card-content">
+                          <div className="card-header">
+                            <div className="icon-wrapper">
+                              <AlertCircle size={20} />
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="card-value">{sitterCounts.pending}</h3>
+                            <p className="card-label">Pending</p>
+                          </div>
+                        </div>
                       </div>
                       <div className="sitter-card card-verified">
-                        <p className="card-label">Verified Sitters</p>
-                        <h3 className="card-value">{sitterCounts.verified}</h3>
+                        <CheckCircle className="card-bg-icon" />
+                        <div className="card-content">
+                          <div className="card-header">
+                            <div className="icon-wrapper">
+                              <CheckCircle size={20} />
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="card-value">{sitterCounts.verified}</h3>
+                            <p className="card-label">Verified</p>
+                          </div>
+                        </div>
                       </div>
                       <div className="sitter-card card-rejected">
-                        <p className="card-label">Rejected Sitters</p>
-                        <h3 className="card-value">{sitterCounts.rejected}</h3>
+                        <XCircle className="card-bg-icon" />
+                        <div className="card-content">
+                          <div className="card-header">
+                            <div className="icon-wrapper">
+                              <XCircle size={20} />
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="card-value">{sitterCounts.rejected}</h3>
+                            <p className="card-label">Rejected</p>
+                          </div>
+                        </div>
                       </div>
                       <div className="sitter-card card-blocked">
-                        <p className="card-label">Blocked Sitters</p>
-                        <h3 className="card-value">{sitterCounts.blocked}</h3>
-                      </div>
-                      <div className="sitter-card card-inactive">
-                        <p className="card-label">Inactive Sitters</p>
-                        <h3 className="card-value">{sitterCounts.inactive}</h3>
+                        <Ban className="card-bg-icon" />
+                        <div className="card-content">
+                          <div className="card-header">
+                            <div className="icon-wrapper">
+                              <Ban size={20} />
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="card-value">{sitterCounts.blocked}</h3>
+                            <p className="card-label">Blocked</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -1157,7 +1336,15 @@ const AdminDashboard: React.FC = () => {
                     </div>
 
                     {/* Sitters Table / Status Messages */}
-                    {sitterError ? (
+                    {(isSittersLoading && sittersList.length === 0) ? (
+                      <div className="premium-loader-container">
+                        <div className="paw-pulse-wrapper">
+                          <div className="paw-pulse-ring"></div>
+                          <PawPrint size={48} className="paw-icon bouncing" color="var(--primary)" />
+                        </div>
+                        <p className="loading-text">Loading Sitters...</p>
+                      </div>
+                    ) : sitterError ? (
                       <StatusMessage type="error" message={sitterError} onRetry={fetchSitters} />
                     ) : filteredSitters.length === 0 ? (
                       <StatusMessage type="empty" message="No pet sitters found matching your criteria. Try adjusting your filters or search terms." />
@@ -1210,15 +1397,14 @@ const AdminDashboard: React.FC = () => {
                                   </td>
                                   <td style={{ textAlign: 'right' }}>
                                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                      {sitter.status?.toLowerCase() === 'pending' && (
-                                        <>
-                                          <button onClick={() => console.log('Approve', sitter.id)} className="action-btn btn-success" title="Approve Sitter"><CheckCircle size={18} /></button>
-                                          <button onClick={() => console.log('Reject', sitter.id)} className="action-btn btn-danger" title="Reject Sitter"><XCircle size={18} /></button>
-                                          <button onClick={() => console.log('Request Info', sitter.id)} className="action-btn btn-warning" title="Request Info"><FileText size={18} /></button>
-                                        </>
-                                      )}
-                                      <button onClick={() => handleViewSitterDetails(sitter.id || sitter._id)} className="action-btn" title="View Sitter Details"><Eye size={18} /></button>
-                                      <button onClick={() => console.log('Block', sitter.id)} className="action-btn btn-danger" title="Block Sitter"><Ban size={18} /></button>
+                                      {/* {sitter.status?.toLowerCase() === 'pending' && (
+                                        // <>
+                                        //   <button onClick={() => console.log('Approve', sitter.id)} className="action-btn btn-success" title="Approve Sitter"><CheckCircle size={18} /></button>
+                                        //   <button onClick={() => console.log('Reject', sitter.id)} className="action-btn btn-danger" title="Reject Sitter"><XCircle size={18} /></button>
+                                        //   <button onClick={() => console.log('Request Info', sitter.id)} className="action-btn btn-warning" title="Request Info"><FileText size={18} /></button>
+                                        // </>
+                                      )} */}
+                                      <button onClick={() => handleViewSitterDetails(sitter.id || sitter._id)} className="view-details-btn" title="View Sitter Details"><Eye size={16} /> View Details</button>
                                     </div>
                                   </td>
                                 </tr>
