@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Search, XCircle, CheckCircle } from "lucide-react";
 import { useAdminAuth } from "../../components/admin/AdminAuthContext";
-
+console.log('AdminBookings component rendered');
 // Mock booking data
 interface Booking {
   id: string;
@@ -98,12 +98,17 @@ const AdminBookings: React.FC = () => {
     // In a real app you would call an API and send notifications here.
   };
 
-  if (!isAuthenticated) return null;
+  if (!isAuthenticated) {
+    // If not authenticated, redirect to login page
+    return <Navigate to="/admin/login" replace />;
+  }
 
+  // Render Admin Bookings page
   return (
     <section className="admin-dashboard page-content admin-bookings-page">
       <div className="container">
         <div className="admin-page-shell">
+          <h2>Bookings Page</h2>
           <header className="admin-page-topbar">
             <div className="admin-navbar-shell">
               <div className="admin-brand">PetBuddy Admin</div>

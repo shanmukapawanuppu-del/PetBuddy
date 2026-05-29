@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { LogOut, Users, LayoutDashboard, Search, Eye, Ban, Trash2, CheckCircle, XCircle, FileText, Info, Filter, PawPrint, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { LogOut, Users, LayoutDashboard, Search, Eye, Ban, Trash2, CheckCircle, XCircle, FileText, Info, Filter, PawPrint, ChevronLeft, ChevronRight, AlertCircle, Calendar } from 'lucide-react';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
@@ -401,6 +401,7 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     const hour = new Date().getHours();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (hour < 12) setGreeting('Good Morning');
     else if (hour < 18) setGreeting('Good Afternoon');
     else setGreeting('Good Evening');
@@ -532,12 +533,9 @@ const AdminDashboard: React.FC = () => {
               const Icon = item.icon;
               return (
                 <Link
-                  key={item.name}
-                  to="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCurrentView(item.id as any);
-                  }}
+                  key={item.id}
+                  to={item.path}
+                  onClick={() => setCurrentView(item.id)}
                   className={`sidebar-nav-link ${isActive ? 'active' : ''}`}
                   style={{
                     justifyContent: isSidebarExpanded ? 'flex-start' : 'center',
