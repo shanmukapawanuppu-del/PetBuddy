@@ -532,9 +532,10 @@ const AdminDashboard: React.FC = () => {
   const searchInputStyle = { width: '100%', padding: '10px 12px 10px 36px', borderRadius: '25px', border: '1px solid var(--border)', fontSize: '0.95rem', background: 'var(--bg-card)' };
 
     const navItems = [
-      { id: 'bookings', name: 'Bookings', path: '/admin/bookings', icon: Calendar },
+      
       { id: 'dashboard', name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-      { id: 'users', name: 'Users', path: '#', icon: Users }
+      { id: 'users', name: 'Users', path: '#', icon: Users },
+      { id: 'bookings', name: 'Bookings', path: '/admin/bookings', icon: Calendar },
     ];
 
   return (
