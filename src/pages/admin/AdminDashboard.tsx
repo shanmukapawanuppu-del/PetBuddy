@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { LogOut, Users, LayoutDashboard, Search, Eye, Ban, Trash2, CheckCircle, XCircle, Info, Filter, PawPrint, ChevronLeft, ChevronRight, AlertCircle, MessageSquare } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { LogOut, Users, LayoutDashboard, Search, Eye, Ban, Trash2, CheckCircle, XCircle, FileText, Info, Filter, PawPrint, ChevronLeft, ChevronRight, AlertCircle, Calendar, MessageSquare } from 'lucide-react';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
 import { UserManagement } from './UserManagement';
 import { SitterDetails } from './SitterDetails';
 import { API_ROUTES } from '../../constants/apiConstants';
+import { adminSidebarNavItems } from '../../constants/adminNav';
 
 // Helper to style status badges
 const getBadgeStyle = (status: string) => {
@@ -476,6 +477,7 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
 
   useEffect(() => {
     const hour = new Date().getHours();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (hour < 12) setGreeting('Good Morning');
     else if (hour < 18) setGreeting('Good Afternoon');
     else setGreeting('Good Evening');
@@ -536,11 +538,12 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
   const badgeBase = { padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '700' };
   const searchInputStyle = { width: '100%', padding: '10px 12px 10px 36px', borderRadius: '25px', border: '1px solid var(--border)', fontSize: '0.95rem', background: 'var(--bg-card)' };
 
-  const navItems = [
-    { id: 'dashboard', name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-    { id: 'users', name: 'Users', path: '/admin/users', icon: Users },
-    { id: 'complaints', name: 'Support', path: '/admin/complaints', icon: MessageSquare },
-  ];
+    // const navItems = [
+      
+    //   { id: 'dashboard', name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
+    //   { id: 'users', name: 'Users', path: '#', icon: Users },
+    //   { id: 'bookings', name: 'Bookings', path: '/admin/bookings', icon: Calendar },
+    // ];
 
   return (
     <div className="admin-wrapper">
@@ -600,19 +603,14 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
 
           {/* Navigation Links */}
           <nav style={{ padding: '16px 0', flex: 1 }}>
-            {navItems.map(item => {
+            {adminSidebarNavItems.map(item => {
               const isActive = currentView === item.id;
               const Icon = item.icon;
               return (
                 <Link
-                  key={item.name}
-                  to={item.path !== '#' ? item.path : '#'}
-                  onClick={(e) => {
-                    if (item.path === '#') {
-                      e.preventDefault();
-                      setCurrentView(item.id as any);
-                    }
-                  }}
+                  key={item.id}
+                  to={item.path}
+                  onClick={() => setCurrentView(item.id)}
                   className={`sidebar-nav-link ${isActive ? 'active' : ''}`}
                   style={{
                     justifyContent: isSidebarExpanded ? 'flex-start' : 'center',

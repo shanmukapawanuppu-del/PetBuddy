@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   ChevronLeft, ChevronRight, Mail, Phone, Calendar, 
-  CheckCircle, XCircle, Ban, PawPrint, Loader2, User, CalendarCheck,
+  CheckCircle, XCircle, Ban, PawPrint, Loader2, LayoutDashboard, Users, User, CalendarCheck
 } from 'lucide-react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 // import { useAdminAuth } from '../../components/admin/AdminAuthContext';

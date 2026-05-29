@@ -23,6 +23,8 @@ import AdminLogin from './pages/admin/AdminLogin';
 import AdminForgotPassword from './pages/admin/AdminForgotPassword';
 import AdminResetPassword from './pages/admin/AdminResetPassword';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminBookings from './pages/admin/AdminBookings';
+
 import { SitterDetails } from './pages/admin/SitterDetails';
 import { OwnerDetails } from './pages/admin/OwnerDetails';
 import { ComplaintsList } from './pages/admin/ComplaintsList';
@@ -92,6 +94,8 @@ const App: React.FC = () => {
           <Route element={<ProtectedRoute />}>
             <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard initialView="dashboard" /></AdminLayout>} />
             <Route path="/admin/users" element={<AdminLayout><AdminDashboard initialView="users" /></AdminLayout>} />
+            <Route path="/admin/bookings" element={<AdminLayout><AdminBookings /></AdminLayout>} />
+            {/* Future Admin Routes will go here */}
             <Route path="/admin/sitters/:id" element={<AdminLayout><SitterDetails /></AdminLayout>} />
             <Route path="/admin/owners/:id" element={<AdminLayout><OwnerDetails /></AdminLayout>} />
             <Route path="/admin/complaints" element={<AdminLayout><ComplaintsList /></AdminLayout>} />
