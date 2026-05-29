@@ -1,12 +1,13 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { LogOut, Users, LayoutDashboard, Search, Eye, Ban, Trash2, CheckCircle, XCircle, FileText, Info, Filter, PawPrint, ChevronLeft, ChevronRight, AlertCircle, Calendar, MessageSquare } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Users, Search, Eye, Ban, Trash2, CheckCircle, XCircle, Info, Filter, PawPrint, AlertCircle } from 'lucide-react';
 import { useAdminAuth } from '../../components/admin/AdminAuthContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './AdminDashboard.css';
 import { UserManagement } from './UserManagement';
 import { SitterDetails } from './SitterDetails';
 import { API_ROUTES } from '../../constants/apiConstants';
-import { adminSidebarNavItems } from '../../constants/adminNav';
+import PremiumSidebar from '../../components/admin/PremiumSidebar';
+import '../../components/admin/PremiumSelect.css';
 
 // Helper to style status badges
 const getBadgeStyle = (status: string) => {
@@ -175,12 +176,9 @@ const StatusMessage: React.FC<StatusMessageProps> = ({ type, message, onRetry })
 };
 
 const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings' | 'payments' | 'settings' }> = ({ initialView = 'dashboard' }) => {
-  const { adminUser, logoutAdmin } = useAdminAuth();
+  const { adminUser } = useAdminAuth();
+  const [currentView, setCurrentView] = useState<'dashboard' | 'users' | 'bookings' | 'payments' | 'settings'>(initialView);
   const navigate = useNavigate();
-
-  const [currentView, setCurrentView] = useState<'dashboard' | 'users' | 'bookings' | 'payments' | 'settings'>(
-    initialView
-  );
 
   useEffect(() => {
     setCurrentView(initialView);
@@ -188,7 +186,6 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
   const [selectedSitter, setSelectedSitter] = useState<any | null>(null);
   const [selectedOwner, setSelectedOwner] = useState<any | null>(null);
 
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   // Tab State
   const [greeting, setGreeting] = useState('');
   const [activeTab, setActiveTab] = useState<'owners' | 'sitters'>(() => {
@@ -483,11 +480,6 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
     else setGreeting('Good Evening');
   }, []);
 
-  const handleLogout = () => {
-    if (window.confirm('Are you sure you want to log out?')) {
-      logoutAdmin();
-    }
-  };
 
   const handleViewSitterDetails = (sitterId: string | number) => {
     navigate(`/admin/sitters/${sitterId}`);
@@ -547,136 +539,7 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
 
   return (
     <div className="admin-wrapper">
-        {/* Sidebar */}
-        <aside 
-          className="admin-sidebar"
-          style={{ 
-            width: isSidebarExpanded ? '280px' : '80px', 
-            transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            overflowX: 'hidden' 
-          }}
-        >
-          <div style={{ 
-            padding: '24px 16px', 
-            borderBottom: '1px solid rgba(255,255,255,0.1)', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: isSidebarExpanded ? 'space-between' : 'center',
-            flexDirection: isSidebarExpanded ? 'row' : 'column',
-            gap: '12px',
-            transition: 'all 0.3s'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{
-                width: '44px', height: '44px', borderRadius: '12px',
-                backgroundColor: 'var(--primary-light)', color: 'var(--primary)',
-                display: 'grid', placeItems: 'center',
-                boxShadow: '0 4px 12px rgba(13, 148, 136, 0.3)',
-                flexShrink: 0
-              }}>
-                <PawPrint size={24} />
-              </div>
-              {isSidebarExpanded && (
-                <span style={{ fontSize: '1.3rem', fontWeight: '800', color: 'white', letterSpacing: '-0.3px' }}>
-                  <span style={{ color: 'var(--primary)' }}>Pet</span>Buddy
-                </span>
-              )}
-            </div>
-            
-            {/* Expand / Hide toggle button */}
-            <button 
-              onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-              style={{
-                background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%',
-                width: '28px', height: '28px', display: 'grid', placeItems: 'center',
-                color: 'white', cursor: 'pointer', transition: 'all 0.2s',
-                outline: 'none',
-                boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-              }}
-              onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-              onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
-              title={isSidebarExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
-            >
-              {isSidebarExpanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-            </button>
-          </div>
-
-          {/* Navigation Links */}
-          <nav style={{ padding: '16px 0', flex: 1 }}>
-            {adminSidebarNavItems.map(item => {
-              const isActive = currentView === item.id;
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.id}
-                  to={item.path}
-                  onClick={() => setCurrentView(item.id)}
-                  className={`sidebar-nav-link ${isActive ? 'active' : ''}`}
-                  style={{
-                    justifyContent: isSidebarExpanded ? 'flex-start' : 'center',
-                    gap: isSidebarExpanded ? '12px' : '0',
-                  }}
-                  title={!isSidebarExpanded ? item.name : undefined}
-                >
-                  <Icon size={20} className="nav-icon" />
-                  {isSidebarExpanded && <span style={{ whiteSpace: 'nowrap' }}>{item.name}</span>}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Sidebar Profile Item */}
-          <div 
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: isSidebarExpanded ? 'flex-start' : 'center', 
-              gap: isSidebarExpanded ? '12px' : '0', 
-              padding: '12px 24px',
-              backgroundColor: 'transparent',
-              color: '#cbd5e1', 
-              transition: 'all 0.2s',
-              borderLeft: '4px solid transparent',
-              borderTop: '1px solid rgba(255,255,255,0.08)',
-              marginTop: 'auto',
-              width: '100%',
-              boxSizing: 'border-box'
-            }}
-            title={!isSidebarExpanded ? adminUser?.fullName : undefined}
-          >
-            <div 
-              style={{ 
-                width: '24px', height: '24px', borderRadius: '50%', 
-                backgroundColor: 'var(--primary)', color: 'white', 
-                display: 'grid', placeItems: 'center', fontWeight: '800', 
-                fontSize: '0.75rem', flexShrink: 0,
-                boxShadow: '0 2px 6px rgba(13, 148, 136, 0.3)'
-              }}
-            >
-              {adminUser?.fullName?.charAt(0).toUpperCase()}
-            </div>
-            {isSidebarExpanded && (
-              <span style={{ whiteSpace: 'nowrap', fontWeight: '500', fontSize: '0.95rem', color: '#cbd5e1' }}>
-                {adminUser?.fullName}
-              </span>
-            )}
-          </div>
-
-          {/* Sign Out Item */}
-          <button 
-            onClick={handleLogout} 
-            className="sidebar-footer-btn"
-            style={{
-              justifyContent: isSidebarExpanded ? 'flex-start' : 'center',
-              gap: isSidebarExpanded ? '12px' : '0',
-              marginBottom: '16px',
-            }}
-            title={!isSidebarExpanded ? "Sign Out" : undefined}
-          >
-            <LogOut size={20} className="nav-icon" /> 
-            {isSidebarExpanded && <span style={{ whiteSpace: 'nowrap' }}>Sign Out</span>}
-          </button>
-        </aside>
+        <PremiumSidebar activeId={currentView} />
 
         {/* Main Content */}
         <main className="admin-main">
@@ -808,20 +671,13 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
                             }
                             setShowOwnerFilterSelect(!showOwnerFilterSelect);
                           }} 
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px',
-                            backgroundColor: showOwnerFilterSelect || ownerFilterCount > 0 ? 'var(--primary-light)' : 'var(--bg-card)',
-                            border: '1.5px solid var(--border)', borderRadius: '20px', cursor: 'pointer',
-                            fontWeight: '600', color: showOwnerFilterSelect || ownerFilterCount > 0 ? 'var(--primary)' : 'var(--text-main)',
-                            transition: 'all 0.2s ease-in-out',
-                            boxShadow: showOwnerFilterSelect ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none'
-                          }}
+                          className={`premium-select-trigger ${showOwnerFilterSelect ? 'open' : ''}`}
                         >
-                          <Filter size={18} />
-                          <span>Filter</span>
+                          <span className="premium-select-icon"><Filter size={18} /></span>
+                          <span className="premium-select-value">Filter</span>
                           {ownerFilterCount > 0 && (
                             <span style={{
-                              backgroundColor: 'var(--primary)', color: 'white',
+                              backgroundColor: '#3b82f6', color: 'white',
                               borderRadius: '50%', width: '20px', height: '20px',
                               display: 'grid', placeItems: 'center', fontSize: '0.75rem', fontWeight: 'bold'
                             }}>
@@ -965,8 +821,8 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
                       <StatusMessage type="empty" message="No pet owners found matching your criteria. Try adjusting your filters or search terms." />
                     ) : (
                       <>
-                        <div className="admin-table-container">
-                          <table className="admin-table">
+                        <div className="table-wrapper">
+                          <table className="modern-table">
                             <thead>
                               <tr>
                                 <th>Owner</th>
@@ -979,35 +835,39 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
                             </thead>
                             <tbody>
                               {filteredOwners.map((owner: any) => (
-                                <tr key={owner._id || owner.id}>
+                                <tr key={owner._id || owner.id} className="table-row">
                                   <td>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                      <div className="table-avatar" style={{ overflow: 'hidden' }}>
+                                    <div className="user-block">
+                                      <div className="user-avatar-small bg-blue" style={{ overflow: 'hidden' }}>
                                         {owner.profilePicture ? (
                                           <img src={owner.profilePicture} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                         ) : (
                                           getOwnerName(owner).charAt(0).toUpperCase()
                                         )}
                                       </div>
-                                      <span style={{ fontWeight: '600', color: 'var(--text-heading)' }}>{getOwnerName(owner)}</span>
+                                      <div>
+                                        <div className="user-name">{getOwnerName(owner)}</div>
+                                      </div>
                                     </div>
                                   </td>
                                   <td>
-                                    <div style={{ fontSize: '0.9rem', color: 'var(--text-heading)' }}>{owner.email}</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{owner.countryCode} {owner.phoneNumber || owner.phone}</div>
+                                    <div className="user-name">{owner.email}</div>
+                                    <div className="user-email">{owner.countryCode} {owner.phoneNumber || owner.phone}</div>
                                   </td>
-                                  <td>{owner.createdAt ? new Date(owner.createdAt).toISOString().split('T')[0] : (owner.createdOn ? new Date(owner.createdOn).toISOString().split('T')[0] : '')}</td>
+                                  <td className="date-text">{owner.createdAt ? new Date(owner.createdAt).toISOString().split('T')[0] : (owner.createdOn ? new Date(owner.createdOn).toISOString().split('T')[0] : '')}</td>
                                   <td>
                                     <div style={{ fontSize: '0.9rem' }}><strong>{owner.petsCount ?? 0}</strong> Pets</div>
                                     <div style={{ fontSize: '0.85rem' }}><strong>{owner.bookingsCount ?? 0}</strong> Bookings</div>
                                   </td>
                                   <td>
-                                    <span style={{ ...badgeBase, ...getBadgeStyle(owner.status) }}>{owner.status || 'ACTIVE'}</span>
+                                    <span className="modern-status-pill" style={getBadgeStyle(owner.status)}>{owner.status || 'ACTIVE'}</span>
                                   </td>
                                   <td style={{ textAlign: 'right' }}>
-                                    <button onClick={() => navigate(`/admin/owners/${owner._id || owner.id}`)} className="view-details-btn" title="View Details"><Eye size={16} /> View Details</button>
-                                    <button onClick={() => handleToggleOwnerStatus(owner._id || owner.id, owner.status || 'ACTIVE')} className={`action-btn ${(!owner.status || owner.status === 'ACTIVE') ? 'btn-danger' : 'btn-success'}`} title={(!owner.status || owner.status === 'ACTIVE') ? 'Block Owner' : 'Unblock Owner'}><Ban size={18} /></button>
-                                    <button onClick={() => handleDeleteOwner(owner._id || owner.id)} className="action-btn btn-danger" title="Delete Owner"><Trash2 size={18} /></button>
+                                    <div style={{ display: 'inline-flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                      <button onClick={() => navigate(`/admin/owners/${owner._id || owner.id}`)} className="page-btn" style={{ padding: '6px 10px' }} title="View Details"><Eye size={16} /></button>
+                                      <button onClick={() => handleToggleOwnerStatus(owner._id || owner.id, owner.status || 'ACTIVE')} className="page-btn" style={{ padding: '6px 10px', color: (!owner.status || owner.status === 'ACTIVE') ? '#e11d48' : '#059669' }} title={(!owner.status || owner.status === 'ACTIVE') ? 'Block Owner' : 'Unblock Owner'}><Ban size={16} /></button>
+                                      <button onClick={() => handleDeleteOwner(owner._id || owner.id)} className="page-btn" style={{ padding: '6px 10px', color: '#e11d48' }} title="Delete Owner"><Trash2 size={16} /></button>
+                                    </div>
                                   </td>
                                 </tr>
                               ))}
@@ -1017,83 +877,46 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
 
                         {/* Owner Pagination and Size Selector */}
                         {ownersList.length > 0 && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', padding: '0 8px', flexWrap: 'wrap', gap: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600' }}>
-                                Page <strong>{ownerPage}</strong> of <strong>{ownerTotalPages || 1}</strong>
-                              </span>
-                              
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>Page:</span>
-                                <select
-                                  value={ownerPage}
-                                  onChange={(e) => setOwnerPage(Number(e.target.value))}
-                                  style={{
-                                    padding: '4px 8px',
-                                    borderRadius: '8px',
-                                    border: '1.5px solid var(--border)',
-                                    background: 'var(--bg-card)',
-                                    color: 'var(--text-heading)',
-                                    fontWeight: '600',
-                                    fontSize: '0.8rem',
-                                    cursor: 'pointer',
-                                    outline: 'none'
-                                  }}
-                                >
-                                  {Array.from({ length: ownerTotalPages || 1 }, (_, i) => i + 1).map(p => (
-                                    <option key={p} value={p}>{p}</option>
-                                  ))}
-                                </select>
-                              </div>
-
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>Show:</span>
-                                <select
-                                  value={ownerLimit}
-                                  onChange={(e) => {
-                                    setOwnerLimit(Number(e.target.value));
-                                    setOwnerPage(1); // Reset page back to 1
-                                  }}
-                                  style={{
-                                    padding: '4px 8px',
-                                    borderRadius: '8px',
-                                    border: '1.5px solid var(--border)',
-                                    background: 'var(--bg-card)',
-                                    color: 'var(--text-heading)',
-                                    fontWeight: '600',
-                                    fontSize: '0.8rem',
-                                    cursor: 'pointer',
-                                    outline: 'none'
-                                  }}
-                                >
-                                  <option value={5}>5 / page</option>
-                                  <option value={10}>10 / page</option>
-                                  <option value={20}>20 / page</option>
-                                  <option value={50}>50 / page</option>
-                                </select>
-                              </div>
+                          <div className="pagination-wrapper">
+                            <div className="pagination-info">
+                              Showing Page <b>{ownerPage}</b> of <b>{ownerTotalPages || 1}</b>
                             </div>
                             
-                            {ownerTotalPages > 1 && (
-                              <div style={{ display: 'flex', gap: '8px' }}>
-                                <button
-                                  disabled={ownerPage === 1}
-                                  onClick={() => setOwnerPage(prev => Math.max(prev - 1, 1))}
-                                  className="btn btn-secondary"
-                                  style={{ padding: '6px 12px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px', opacity: ownerPage === 1 ? 0.5 : 1, cursor: ownerPage === 1 ? 'not-allowed' : 'pointer' }}
-                                >
-                                  <ChevronLeft size={16} /> Prev
-                                </button>
-                                <button
-                                  disabled={ownerPage >= ownerTotalPages}
-                                  onClick={() => setOwnerPage(prev => Math.min(prev + 1, ownerTotalPages))}
-                                  className="btn btn-secondary"
-                                  style={{ padding: '6px 12px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px', opacity: ownerPage >= ownerTotalPages ? 0.5 : 1, cursor: ownerPage >= ownerTotalPages ? 'not-allowed' : 'pointer' }}
-                                >
-                                  Next <ChevronRight size={16} />
-                                </button>
-                              </div>
-                            )}
+                            <div className="pagination-controls">
+                              <select
+                                value={ownerLimit}
+                                onChange={(e) => {
+                                  setOwnerLimit(Number(e.target.value));
+                                  setOwnerPage(1);
+                                }}
+                                className="modern-select"
+                                style={{ padding: '8px 12px', minWidth: '100px', fontSize: '0.85rem' }}
+                              >
+                                <option value={5}>5 / page</option>
+                                <option value={10}>10 / page</option>
+                                <option value={20}>20 / page</option>
+                                <option value={50}>50 / page</option>
+                              </select>
+
+                              {ownerTotalPages > 1 && (
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                  <button
+                                    disabled={ownerPage === 1}
+                                    onClick={() => setOwnerPage(prev => Math.max(prev - 1, 1))}
+                                    className="page-btn"
+                                  >
+                                    Prev
+                                  </button>
+                                  <button
+                                    disabled={ownerPage >= ownerTotalPages}
+                                    onClick={() => setOwnerPage(prev => Math.min(prev + 1, ownerTotalPages))}
+                                    className="page-btn"
+                                  >
+                                    Next
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )}
                       </>
@@ -1201,20 +1024,13 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
                             }
                             setShowSitterFilterSelect(!showSitterFilterSelect);
                           }} 
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px',
-                            backgroundColor: showSitterFilterSelect || sitterFilterCount > 0 ? 'var(--primary-light)' : 'var(--bg-card)',
-                            border: '1.5px solid var(--border)', borderRadius: '20px', cursor: 'pointer',
-                            fontWeight: '600', color: showSitterFilterSelect || sitterFilterCount > 0 ? 'var(--primary)' : 'var(--text-main)',
-                            transition: 'all 0.2s ease-in-out',
-                            boxShadow: showSitterFilterSelect ? '0 2px 8px rgba(13, 148, 136, 0.15)' : 'none'
-                          }}
+                          className={`premium-select-trigger ${showSitterFilterSelect ? 'open' : ''}`}
                         >
-                          <Filter size={18} />
-                          <span>Filter</span>
+                          <span className="premium-select-icon"><Filter size={18} /></span>
+                          <span className="premium-select-value">Filter</span>
                           {sitterFilterCount > 0 && (
                             <span style={{
-                              backgroundColor: 'var(--primary)', color: 'white',
+                              backgroundColor: '#3b82f6', color: 'white',
                               borderRadius: '50%', width: '20px', height: '20px',
                               display: 'grid', placeItems: 'center', fontSize: '0.75rem', fontWeight: 'bold'
                             }}>
@@ -1358,8 +1174,8 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
                       <StatusMessage type="empty" message="No pet sitters found matching your criteria. Try adjusting your filters or search terms." />
                     ) : (
                       <>
-                        <div className="admin-table-container">
-                          <table className="admin-table" style={{ minWidth: '1000px' }}>
+                        <div className="table-wrapper">
+                          <table className="modern-table" style={{ minWidth: '1000px' }}>
                             <thead>
                               <tr>
                                 <th>Sitter</th>
@@ -1371,27 +1187,27 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
                             </thead>
                             <tbody>
                               {filteredSitters.map(sitter => (
-                                <tr key={sitter.id}>
+                                <tr key={sitter.id} className="table-row">
                                   <td>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                      <div className="table-avatar">
+                                    <div className="user-block">
+                                      <div className="user-avatar-small bg-purple">
                                         {sitter.avatar || getSitterName(sitter).charAt(0).toUpperCase()}
                                       </div>
                                       <div>
-                                        <div style={{ fontWeight: '600', color: 'var(--text-heading)' }}>{getSitterName(sitter)}</div>
-                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                        <div className="user-name">{getSitterName(sitter)}</div>
+                                        <div className="user-email">
                                           Reg: {sitter.date || (sitter.createdOn ? new Date(sitter.createdOn).toISOString().split('T')[0] : '')}
                                         </div>
                                       </div>
                                     </div>
                                   </td>
                                   <td>
-                                    <div style={{ fontSize: '0.9rem', color: 'var(--text-heading)' }}>{sitter.email}</div>
-                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{sitter.phone || sitter.phoneNumber}</div>
-                                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>{getSitterAddress(sitter)}</div>
+                                    <div className="user-name">{sitter.email}</div>
+                                    <div className="user-email">{sitter.phone || sitter.phoneNumber}</div>
+                                    <div className="date-text" style={{ marginTop: '2px' }}>{getSitterAddress(sitter)}</div>
                                   </td>
                                   <td>
-                                     <span style={{ ...badgeBase, ...getBadgeStyle(sitter.status), display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                     <span className="modern-status-pill" style={getBadgeStyle(sitter.status)}>
                                        {sitter.status?.toLowerCase() === 'pending' && <Info size={14} />}
                                        {(sitter.status?.toLowerCase() === 'verified' || sitter.status?.toLowerCase() === 'approved') && <CheckCircle size={14} />}
                                        {sitter.status?.toLowerCase() === 'rejected' && <XCircle size={14} />}
@@ -1401,18 +1217,11 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
                                      </span>
                                   </td>
                                   <td>
-                                     <span style={{ ...badgeBase, ...getBadgeStyle(sitter.availability || sitter.availStatus) }}>{sitter.availability || sitter.availStatus}</span>
+                                     <span className="modern-status-pill" style={getBadgeStyle(sitter.availability || sitter.availStatus)}>{sitter.availability || sitter.availStatus}</span>
                                   </td>
                                   <td style={{ textAlign: 'right' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                      {/* {sitter.status?.toLowerCase() === 'pending' && (
-                                        // <>
-                                        //   <button onClick={() => console.log('Approve', sitter.id)} className="action-btn btn-success" title="Approve Sitter"><CheckCircle size={18} /></button>
-                                        //   <button onClick={() => console.log('Reject', sitter.id)} className="action-btn btn-danger" title="Reject Sitter"><XCircle size={18} /></button>
-                                        //   <button onClick={() => console.log('Request Info', sitter.id)} className="action-btn btn-warning" title="Request Info"><FileText size={18} /></button>
-                                        // </>
-                                      )} */}
-                                      <button onClick={() => handleViewSitterDetails(sitter.id || sitter._id)} className="view-details-btn" title="View Sitter Details"><Eye size={16} /> View Details</button>
+                                    <div style={{ display: 'inline-flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                      <button onClick={() => handleViewSitterDetails(sitter.id || sitter._id)} className="page-btn" style={{ padding: '6px 12px' }} title="View Sitter Details"><Eye size={16} /> View Details</button>
                                     </div>
                                   </td>
                                 </tr>
@@ -1423,83 +1232,46 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
 
                         {/* Sitter Pagination and Size Selector */}
                         {sittersList.length > 0 && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', padding: '0 8px', flexWrap: 'wrap', gap: '12px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '600' }}>
-                                Page <strong>{sitterPage}</strong> of <strong>{sitterTotalPages || 1}</strong>
-                              </span>
-                              
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>Page:</span>
-                                <select
-                                  value={sitterPage}
-                                  onChange={(e) => setSitterPage(Number(e.target.value))}
-                                  style={{
-                                    padding: '4px 8px',
-                                    borderRadius: '8px',
-                                    border: '1.5px solid var(--border)',
-                                    background: 'var(--bg-card)',
-                                    color: 'var(--text-heading)',
-                                    fontWeight: '600',
-                                    fontSize: '0.8rem',
-                                    cursor: 'pointer',
-                                    outline: 'none'
-                                  }}
-                                >
-                                  {Array.from({ length: sitterTotalPages || 1 }, (_, i) => i + 1).map(p => (
-                                    <option key={p} value={p}>{p}</option>
-                                  ))}
-                                </select>
-                              </div>
-
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600' }}>Show:</span>
-                                <select
-                                  value={sitterLimit}
-                                  onChange={(e) => {
-                                    setSitterLimit(Number(e.target.value));
-                                    setSitterPage(1); // Reset page back to 1
-                                  }}
-                                  style={{
-                                    padding: '4px 8px',
-                                    borderRadius: '8px',
-                                    border: '1.5px solid var(--border)',
-                                    background: 'var(--bg-card)',
-                                    color: 'var(--text-heading)',
-                                    fontWeight: '600',
-                                    fontSize: '0.8rem',
-                                    cursor: 'pointer',
-                                    outline: 'none'
-                                  }}
-                                >
-                                  <option value={5}>5 / page</option>
-                                  <option value={10}>10 / page</option>
-                                  <option value={20}>20 / page</option>
-                                  <option value={50}>50 / page</option>
-                                </select>
-                              </div>
+                          <div className="pagination-wrapper">
+                            <div className="pagination-info">
+                              Showing Page <b>{sitterPage}</b> of <b>{sitterTotalPages || 1}</b>
                             </div>
                             
-                            {sitterTotalPages > 1 && (
-                              <div style={{ display: 'flex', gap: '8px' }}>
-                                <button
-                                  disabled={sitterPage === 1}
-                                  onClick={() => setSitterPage(prev => Math.max(prev - 1, 1))}
-                                  className="btn btn-secondary"
-                                  style={{ padding: '6px 12px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px', opacity: sitterPage === 1 ? 0.5 : 1, cursor: sitterPage === 1 ? 'not-allowed' : 'pointer' }}
-                                >
-                                  <ChevronLeft size={16} /> Prev
-                                </button>
-                                <button
-                                  disabled={sitterPage >= sitterTotalPages}
-                                  onClick={() => setSitterPage(prev => Math.min(prev + 1, sitterTotalPages))}
-                                  className="btn btn-secondary"
-                                  style={{ padding: '6px 12px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px', opacity: sitterPage >= sitterTotalPages ? 0.5 : 1, cursor: sitterPage >= sitterTotalPages ? 'not-allowed' : 'pointer' }}
-                                >
-                                  Next <ChevronRight size={16} />
-                                </button>
-                              </div>
-                            )}
+                            <div className="pagination-controls">
+                              <select
+                                value={sitterLimit}
+                                onChange={(e) => {
+                                  setSitterLimit(Number(e.target.value));
+                                  setSitterPage(1);
+                                }}
+                                className="modern-select"
+                                style={{ padding: '8px 12px', minWidth: '100px', fontSize: '0.85rem' }}
+                              >
+                                <option value={5}>5 / page</option>
+                                <option value={10}>10 / page</option>
+                                <option value={20}>20 / page</option>
+                                <option value={50}>50 / page</option>
+                              </select>
+
+                              {sitterTotalPages > 1 && (
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                  <button
+                                    disabled={sitterPage === 1}
+                                    onClick={() => setSitterPage(prev => Math.max(prev - 1, 1))}
+                                    className="page-btn"
+                                  >
+                                    Prev
+                                  </button>
+                                  <button
+                                    disabled={sitterPage >= sitterTotalPages}
+                                    onClick={() => setSitterPage(prev => Math.min(prev + 1, sitterTotalPages))}
+                                    className="page-btn"
+                                  >
+                                    Next
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )}
                       </>

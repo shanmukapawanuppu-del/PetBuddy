@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ChevronLeft, ChevronRight, Mail, Phone, Calendar, 
-  CheckCircle, XCircle, Ban, PawPrint, Loader2, LayoutDashboard, Users, User, CalendarCheck
+  ChevronLeft, Mail, Phone, Calendar, 
+  CheckCircle, XCircle, Ban, PawPrint, Loader2, User, CalendarCheck
 } from 'lucide-react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-// import { useAdminAuth } from '../../components/admin/AdminAuthContext';
+import { useParams, useNavigate } from 'react-router-dom';
 import { API_ROUTES } from '../../constants/apiConstants';
+import PremiumSidebar from '../../components/admin/PremiumSidebar';
 import './AdminDashboard.css';
 
 // --- Shared Helpers ---
@@ -42,14 +42,10 @@ const SafeImage = ({ src, alt, fallbackName }: { src: string, alt: string, fallb
   return <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={() => setHasError(true)} />;
 };
 
-import { adminSidebarNavItems } from '../../constants/adminNav';
-
 export const OwnerDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  // const { adminUser, logoutAdmin } = useAdminAuth();
   
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [fetchedData, setFetchedData] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -123,43 +119,6 @@ export const OwnerDetails: React.FC = () => {
     }
     return '';
   };
-
-  const renderAdminNav = () => (
-    <aside className="admin-sidebar" style={{ width: isSidebarExpanded ? '280px' : '80px', transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)', overflowX: 'hidden', zIndex: 50 }}>
-      <div style={{ padding: '24px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: isSidebarExpanded ? 'space-between' : 'center', flexDirection: isSidebarExpanded ? 'row' : 'column', gap: '12px', transition: 'all 0.3s' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '44px', height: '44px', borderRadius: '12px', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'grid', placeItems: 'center', boxShadow: '0 4px 12px rgba(13, 148, 136, 0.3)', flexShrink: 0 }}>
-            <PawPrint size={24} />
-          </div>
-          {isSidebarExpanded && (
-            <span style={{ fontSize: '1.3rem', fontWeight: '800', color: 'white', letterSpacing: '-0.3px' }}>
-              <span style={{ color: 'var(--primary)' }}>Pet</span>Buddy
-            </span>
-          )}
-        </div>
-        <button onClick={() => setIsSidebarExpanded(p => !p)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'grid', placeItems: 'center', color: 'white', cursor: 'pointer', transition: 'all 0.2s', outline: 'none', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-          {isSidebarExpanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-        </button>
-      </div>
-      <nav style={{ padding: '16px 0', flex: 1 }}>
-        {adminSidebarNavItems.map(item => (
-          <Link 
-            key={item.name} 
-            to={item.path} 
-            className={`sidebar-nav-link ${item.id === 'dashboard' ? 'active' : ''}`}
-            style={{ 
-              justifyContent: isSidebarExpanded ? 'flex-start' : 'center', 
-              gap: isSidebarExpanded ? '12px' : '0' 
-            }}
-            title={!isSidebarExpanded ? item.name : undefined}
-          >
-            <item.icon size={20} className="nav-icon" />
-            {isSidebarExpanded && <span style={{ whiteSpace: 'nowrap' }}>{item.name}</span>}
-          </Link>
-        ))}
-      </nav>
-    </aside>
-  );
 
   const owner = fetchedData;
 
@@ -449,8 +408,8 @@ export const OwnerDetails: React.FC = () => {
   );
 
   return (
-    <div className="admin-wrapper" style={{ background: 'radial-gradient(circle at top left, #e0f2fe 0%, #f8fafc 50%, #f1f5f9 100%)', overflow: 'hidden' }}>
-      {renderAdminNav()}
+    <div className="admin-wrapper" style={{ overflow: 'hidden' }}>
+      <PremiumSidebar activeId="users" />
       <main className="admin-main" style={{ overflowY: 'auto', height: '100vh', padding: '40px' }}>
         {content}
       </main>

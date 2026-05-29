@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Search, Eye, Ban, Trash2, X, CheckCircle, Mail, AlertCircle } from 'lucide-react';
+import { Search, Eye, Ban, Trash2, UserPlus, AlertCircle, X, CheckCircle, Mail } from 'lucide-react';
+import '../../components/admin/PremiumTable.css';
 
 interface User {
   id: string;
@@ -135,23 +136,20 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
     });
 
   // Styles
-  const badgeBase = { padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '700' };
-  const searchInputStyle = { width: '100%', padding: '10px 12px 10px 36px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '0.95rem', background: 'var(--bg-card)' };
-  const noDataStyle: React.CSSProperties = { padding: '32px', textAlign: 'center', color: 'var(--text-muted)' };
 
   return (
-    <>
-      {/* Top Header Controls - Search Input and Add User Button in a single bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+    <div className="glass-panel" style={{ animation: 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+      {/* Top Header Controls */}
+      <div className="panel-controls">
         {/* Search Input Box */}
-        <div style={{ position: 'relative', width: '300px' }}>
-          <Search size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+        <div className="search-wrapper">
+          <Search size={18} className="input-icon" />
           <input
             type="text"
+            className="modern-input"
             placeholder="Search Name, Email, Phone..."
             value={userSearch}
             onChange={e => setUserSearch(e.target.value)}
-            style={{ ...searchInputStyle, paddingLeft: '36px' }}
           />
         </div>
 
@@ -161,28 +159,26 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
             resetAddForm();
             setShowAddModal(true);
           }}
+          className="page-btn"
           style={{
-            padding: '10px 20px',
             backgroundColor: 'var(--primary)',
             color: 'white',
             border: 'none',
-            borderRadius: '12px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(13, 148, 136, 0.2)',
-            transition: 'all 0.2s ease',
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            gap: '6px'
+            gap: '8px'
           }}
+          onMouseOver={e => e.currentTarget.style.backgroundColor = 'var(--primary-dark)'}
+          onMouseOut={e => e.currentTarget.style.backgroundColor = 'var(--primary)'}
         >
-          <span>+ Add User</span>
+          <UserPlus size={18} />
+          <span>Add User</span>
         </button>
       </div>
 
       {/* Users Table */}
-      <div className="admin-table-container">
-        <table className="admin-table" style={{ minWidth: '800px' }}>
+      <div className="table-wrapper">
+        <table className="modern-table">
           <thead>
             <tr>
               <th>User</th>
@@ -196,45 +192,57 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
           </thead>
           <tbody>
             {filteredUsers.map(user => (
-              <tr key={user.id}>
+              <tr key={user.id} className="table-row">
                 <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div className="table-avatar" style={{ backgroundColor: user.role === 'Pet Sitter' ? 'rgba(124, 58, 237, 0.12)' : 'var(--primary-light)', color: user.role === 'Pet Sitter' ? '#7c3aed' : 'var(--primary)' }}>
+                  <div className="user-block">
+                    <div className={`user-avatar-small ${user.role === 'Pet Sitter' ? 'bg-purple' : 'bg-blue'}`}>
                       {user.fullName.charAt(0).toUpperCase()}
                     </div>
-                    <span style={{ fontWeight: '600', color: 'var(--text-heading)' }}>{user.fullName}</span>
+                    <div>
+                      <div className="user-name">{user.fullName}</div>
+                    </div>
                   </div>
                 </td>
                 <td>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-heading)' }}>{user.email}</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{user.phone}</div>
+                  <div className="user-name">{user.email}</div>
+                  <div className="user-email">{user.phone}</div>
                 </td>
                 <td>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-heading)' }}>{user.city}, {user.state}</div>
+                  <div className="date-text">{user.city}, {user.state}</div>
                 </td>
                 <td>
-                  <span style={{ ...badgeBase, padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '700', backgroundColor: user.role === 'Pet Sitter' ? 'rgba(124, 58, 237, 0.12)' : 'rgba(59, 130, 246, 0.12)', color: user.role === 'Pet Sitter' ? '#7c3aed' : '#3b82f6' }}>
+                  <span className="modern-status-pill" style={{ backgroundColor: user.role === 'Pet Sitter' ? 'rgba(124, 58, 237, 0.1)' : 'rgba(56, 189, 248, 0.1)', color: user.role === 'Pet Sitter' ? '#7c3aed' : '#0284c7' }}>
                     {user.role}
                   </span>
                 </td>
-                <td>{user.date}</td>
+                <td className="date-text">{user.date}</td>
                 <td>
-                  <span style={{ ...badgeBase, ...getBadgeStyle(user.status) }}>{user.status}</span>
+                  <span className="modern-status-pill" style={getBadgeStyle(user.status)}>{user.status}</span>
                 </td>
                 <td style={{ textAlign: 'right' }}>
-                  <button onClick={() => console.log('View', user.id)} className="action-btn" title="View Details"><Eye size={18} /></button>
-                  <button onClick={() => handleToggleBlockUser(user.id)} className={`action-btn ${user.status === 'Blocked' ? 'btn-success' : 'btn-danger'}`} title={user.status === 'Blocked' ? 'Unblock User' : 'Block User'}>
-                    <Ban size={18} />
-                  </button>
-                  <button onClick={() => handleDeleteUser(user.id)} className="action-btn btn-danger" title="Delete User"><Trash2 size={18} /></button>
+                  <div style={{ display: 'inline-flex', gap: '8px' }}>
+                    <button onClick={() => console.log('View', user.id)} className="page-btn" style={{ padding: '6px 10px' }} title="View Details"><Eye size={16} /></button>
+                    <button onClick={() => handleToggleBlockUser(user.id)} className="page-btn" style={{ padding: '6px 10px', color: user.status === 'Blocked' ? '#059669' : '#e11d48' }} title={user.status === 'Blocked' ? 'Unblock User' : 'Block User'}>
+                      <Ban size={16} />
+                    </button>
+                    <button onClick={() => handleDeleteUser(user.id)} className="page-btn" style={{ padding: '6px 10px', color: '#e11d48' }} title="Delete User"><Trash2 size={16} /></button>
+                  </div>
                 </td>
               </tr>
             ))}
             {filteredUsers.length === 0 && (
-              <tr><td colSpan={7} style={noDataStyle}>No users found.</td></tr>
+              <tr><td colSpan={7} className="empty-cell">No users found.</td></tr>
             )}
           </tbody>
         </table>
+        
+        <div className="pagination-wrapper">
+          <div className="pagination-info">Showing <b>{filteredUsers.length}</b> users</div>
+          <div className="pagination-controls">
+            <button className="page-btn" disabled>Previous</button>
+            <button className="page-btn" disabled>Next</button>
+          </div>
+        </div>
       </div>
 
       {/* Add User Modal */}
@@ -559,6 +567,6 @@ export const UserManagement: React.FC<UserManagementProps> = ({ getBadgeStyle })
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };

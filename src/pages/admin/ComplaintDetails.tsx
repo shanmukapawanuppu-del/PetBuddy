@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  ChevronLeft, MessageSquare, AlertTriangle, 
+  ChevronLeft, AlertTriangle, 
   Clock, ShieldAlert, CheckCircle, Mail, Phone, ExternalLink,
-  Calendar, FileText, Image as ImageIcon, MessageCircle, Send, Ban, RefreshCw, PawPrint
+  Calendar, FileText, Image as ImageIcon, MessageCircle, Send, Ban, RefreshCw
 } from 'lucide-react';
+import PremiumSidebar from '../../components/admin/PremiumSidebar';
 import './AdminDashboard.css';
 
 // --- Types & Mock Data ---
 type Priority = 'Low' | 'Medium' | 'High' | 'Critical';
 type Status = 'Open' | 'In Review' | 'Escalated' | 'Resolved' | 'Closed';
-
-import { adminSidebarNavItems } from '../../constants/adminNav';
 
 const mockComplaintDetail = {
   id: '#1001',
@@ -78,11 +77,33 @@ const getStatusStyle = (status: Status) => {
 export const ComplaintDetails: React.FC = () => {
   // const { ticketId } = useParams();
   const navigate = useNavigate();
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  // In a real app, fetch based on ticketId
+  const [ticket, setTicket] = useState(mockComplaintDetail);
   const [newNote, setNewNote] = useState('');
   
-  // In a real app, fetch based on ticketId
-  const ticket = mockComplaintDetail;
+  const handleAction = (actionName: string, newStatus?: Status) => {
+    const newNoteObj = { 
+      author: 'Admin', 
+      timestamp: new Date().toISOString(), 
+      text: `Admin performed action: ${actionName}` 
+    };
+    
+    setTicket(prev => ({
+      ...prev,
+      status: newStatus || prev.status,
+      adminNotes: [...prev.adminNotes, newNoteObj]
+    }));
+  };
+
+  const handleSaveNote = () => {
+    if (!newNote.trim()) return;
+    const newNoteObj = { author: 'Admin', timestamp: new Date().toISOString(), text: newNote };
+    setTicket(prev => ({
+      ...prev,
+      adminNotes: [...prev.adminNotes, newNoteObj]
+    }));
+    setNewNote('');
+  };
   const prioStyle = getPriorityStyle(ticket.priority);
   const statStyle = getStatusStyle(ticket.status);
   const StatIcon = statStyle.icon;
@@ -98,46 +119,9 @@ export const ComplaintDetails: React.FC = () => {
     flexDirection: 'column' as const,
   };
 
-  const renderAdminNav = () => (
-    <aside className="admin-sidebar" style={{ width: isSidebarExpanded ? '280px' : '80px', transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)', overflowX: 'hidden', zIndex: 50 }}>
-      <div style={{ padding: '24px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: isSidebarExpanded ? 'space-between' : 'center', flexDirection: isSidebarExpanded ? 'row' : 'column', gap: '12px', transition: 'all 0.3s' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '44px', height: '44px', borderRadius: '12px', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'grid', placeItems: 'center', boxShadow: '0 4px 12px rgba(13, 148, 136, 0.3)', flexShrink: 0 }}>
-            <PawPrint size={24} />
-          </div>
-          {isSidebarExpanded && (
-            <span style={{ fontSize: '1.3rem', fontWeight: '800', color: 'white', letterSpacing: '-0.3px' }}>
-              <span style={{ color: 'var(--primary)' }}>Pet</span>Buddy
-            </span>
-          )}
-        </div>
-        <button onClick={() => setIsSidebarExpanded(p => !p)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'grid', placeItems: 'center', color: 'white', cursor: 'pointer', transition: 'all 0.2s', outline: 'none', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-          {/* {isSidebarExpanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />} */}
-        </button>
-      </div>
-      <nav style={{ padding: '16px 0', flex: 1 }}>
-        {adminSidebarNavItems.map(item => (
-          <Link 
-            key={item.name} 
-            to={item.path} 
-            className={`sidebar-nav-link ${item.id === 'complaints' ? 'active' : ''}`}
-            style={{ 
-              justifyContent: isSidebarExpanded ? 'flex-start' : 'center', 
-              gap: isSidebarExpanded ? '12px' : '0' 
-            }}
-            title={!isSidebarExpanded ? item.name : undefined}
-          >
-            <item.icon size={20} className="nav-icon" />
-            {isSidebarExpanded && <span style={{ whiteSpace: 'nowrap' }}>{item.name}</span>}
-          </Link>
-        ))}
-      </nav>
-    </aside>
-  );
-
   return (
-    <div className="admin-wrapper" style={{ background: 'radial-gradient(circle at top left, #e0f2fe 0%, #f8fafc 50%, #f1f5f9 100%)', overflow: 'hidden' }}>
-      {renderAdminNav()}
+    <div className="admin-wrapper" style={{ overflow: 'hidden' }}>
+      <PremiumSidebar activeId="complaints" />
       <main className="admin-main" style={{ overflowY: 'auto', height: '100vh', padding: '40px' }}>
         <div style={{ width: '100%', margin: '0 auto', animation: 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}>
           
@@ -157,9 +141,18 @@ export const ComplaintDetails: React.FC = () => {
               <ChevronLeft size={16} /> Back to Complaints
             </button>
             <div style={{ display: 'flex', gap: '12px' }}>
-               <button className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><RefreshCw size={16} /> Mark In Review</button>
-               <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--danger)', borderColor: 'var(--danger)' }}><ShieldAlert size={16} /> Escalate</button>
-               <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle size={16} /> Resolve Ticket</button>
+               {ticket.status === 'Open' && (
+                 <button onClick={() => handleAction('Mark In Review', 'In Review')} className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><RefreshCw size={16} /> Mark In Review</button>
+               )}
+               {['Open', 'In Review'].includes(ticket.status) && (
+                 <button onClick={() => handleAction('Escalated Complaint', 'Escalated')} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--danger)', borderColor: 'var(--danger)' }}><ShieldAlert size={16} /> Escalate</button>
+               )}
+               {['Open', 'In Review', 'Escalated'].includes(ticket.status) && (
+                 <button onClick={() => handleAction('Resolved Complaint', 'Resolved')} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><CheckCircle size={16} /> Resolve Ticket</button>
+               )}
+               {ticket.status === 'Resolved' && (
+                 <button onClick={() => handleAction('Closed Ticket', 'Closed')} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#64748b', borderColor: '#64748b' }}><CheckCircle size={16} /> Close Ticket</button>
+               )}
             </div>
           </div>
 
@@ -218,7 +211,7 @@ export const ComplaintDetails: React.FC = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-muted)', fontWeight: '600', fontSize: '0.95rem' }}><Mail size={16} /> {ticket.reporter.email}</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: 'var(--text-muted)', fontWeight: '600', fontSize: '0.95rem' }}><Phone size={16} /> {ticket.reporter.phone}</div>
                   </div>
-                  <button className="btn btn-outline" style={{ marginTop: '24px', width: '100%', display: 'flex', justifyContent: 'center', gap: '8px' }}><MessageCircle size={16} /> Contact {ticket.reporter.role}</button>
+                  <button onClick={() => handleAction(`Contacted ${ticket.reporter.role}`)} className="btn btn-outline" style={{ marginTop: '24px', width: '100%', display: 'flex', justifyContent: 'center', gap: '8px' }}><MessageCircle size={16} /> Contact {ticket.reporter.role}</button>
                 </div>
 
                 {/* Reported Against */}
@@ -239,8 +232,8 @@ export const ComplaintDetails: React.FC = () => {
                     <ExternalLink size={16} /> View Full Profile
                   </Link>
                   <div style={{ display: 'flex', gap: '12px', marginTop: 'auto' }}>
-                    <button className="btn btn-outline" style={{ flex: 1, padding: '12px' }} title="Suspend Sitter"><Ban size={18} style={{ margin: '0 auto' }}/></button>
-                    <button className="btn btn-outline" style={{ flex: 1, padding: '12px' }} title="Contact"><MessageCircle size={18} style={{ margin: '0 auto' }}/></button>
+                    <button onClick={() => handleAction(`Suspended ${ticket.reportedAgainst.role}`)} className="btn btn-outline" style={{ flex: 1, padding: '12px' }} title={`Suspend ${ticket.reportedAgainst.role}`}><Ban size={18} style={{ margin: '0 auto' }}/></button>
+                    <button onClick={() => handleAction(`Contacted ${ticket.reportedAgainst.role}`)} className="btn btn-outline" style={{ flex: 1, padding: '12px' }} title="Contact"><MessageCircle size={18} style={{ margin: '0 auto' }}/></button>
                   </div>
                 </div>
               </div>
@@ -270,8 +263,8 @@ export const ComplaintDetails: React.FC = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-                  <button className="btn btn-outline" style={{ flex: 1, borderColor: '#10b981', color: '#10b981' }}>Approve Refund</button>
-                  <button className="btn btn-outline" style={{ flex: 1, borderColor: '#ef4444', color: '#ef4444' }}>Reject Refund</button>
+                  <button onClick={() => handleAction('Approved Refund')} className="btn btn-outline" style={{ flex: 1, borderColor: '#10b981', color: '#10b981' }}>Approve Refund</button>
+                  <button onClick={() => handleAction('Rejected Refund')} className="btn btn-outline" style={{ flex: 1, borderColor: '#ef4444', color: '#ef4444' }}>Reject Refund</button>
                 </div>
               </div>
 
@@ -345,6 +338,7 @@ export const ComplaintDetails: React.FC = () => {
                     onBlur={e => e.currentTarget.style.borderColor = 'rgba(0,0,0,0.1)'}
                   />
                   <button 
+                    onClick={handleSaveNote}
                     style={{ 
                       position: 'absolute', right: '12px', bottom: '16px', background: 'var(--primary)', 
                       color: 'white', border: 'none', borderRadius: '12px', padding: '10px 20px', 

@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import {
-  ChevronLeft, ChevronRight, Search, Filter,
+  Search, Filter,
   MessageSquare, ShieldAlert, CheckCircle, Clock,
-  Eye, AlertTriangle, PawPrint
+  Eye, AlertTriangle
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import PremiumSidebar from '../../components/admin/PremiumSidebar';
+import PremiumSelect from '../../components/admin/PremiumSelect';
+import '../../components/admin/PremiumTable.css';
 import './AdminDashboard.css';
 
 // --- Types & Mock Data ---
@@ -70,8 +73,6 @@ const mockComplaints: Complaint[] = [
 ];
 
 // --- Helpers ---
-import { adminSidebarNavItems } from '../../constants/adminNav';
-
 const getPriorityStyle = (priority: Priority) => {
   switch (priority) {
     case 'Critical': return { bg: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }; // Red
@@ -94,11 +95,8 @@ const getStatusStyle = (status: Status) => {
 };
 
 export const ComplaintsList: React.FC = () => {
-  const navigate = useNavigate();
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<Status | 'All'>('All');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const filteredComplaints = mockComplaints
     .filter(c => 
@@ -109,199 +107,119 @@ export const ComplaintsList: React.FC = () => {
     .filter(c => filterStatus === 'All' || c.status === filterStatus)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-  const renderAdminNav = () => (
-    <aside className="admin-sidebar" style={{ width: isSidebarExpanded ? '280px' : '80px', transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)', overflowX: 'hidden', zIndex: 50 }}>
-      <div style={{ padding: '24px 16px', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: isSidebarExpanded ? 'space-between' : 'center', flexDirection: isSidebarExpanded ? 'row' : 'column', gap: '12px', transition: 'all 0.3s' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '44px', height: '44px', borderRadius: '12px', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'grid', placeItems: 'center', boxShadow: '0 4px 12px rgba(13, 148, 136, 0.3)', flexShrink: 0 }}>
-            <PawPrint size={24} />
-          </div>
-          {isSidebarExpanded && (
-            <span style={{ fontSize: '1.3rem', fontWeight: '800', color: 'white', letterSpacing: '-0.3px' }}>
-              <span style={{ color: 'var(--primary)' }}>Pet</span>Buddy
-            </span>
-          )}
-        </div>
-        <button onClick={() => setIsSidebarExpanded(p => !p)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'grid', placeItems: 'center', color: 'white', cursor: 'pointer', transition: 'all 0.2s', outline: 'none', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-          {isSidebarExpanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-        </button>
-      </div>
-      <nav style={{ padding: '16px 0', flex: 1 }}>
-        {adminSidebarNavItems.map(item => (
-          <Link 
-            key={item.name} 
-            to={item.path} 
-            className={`sidebar-nav-link ${item.id === 'complaints' ? 'active' : ''}`}
-            style={{ 
-              justifyContent: isSidebarExpanded ? 'flex-start' : 'center', 
-              gap: isSidebarExpanded ? '12px' : '0' 
-            }}
-            title={!isSidebarExpanded ? item.name : undefined}
-          >
-            <item.icon size={20} className="nav-icon" />
-            {isSidebarExpanded && <span style={{ whiteSpace: 'nowrap' }}>{item.name}</span>}
-          </Link>
-        ))}
-      </nav>
-    </aside>
-  );
-
   return (
-    <div className="admin-wrapper" style={{ background: 'radial-gradient(circle at top left, #e0f2fe 0%, #f8fafc 50%, #f1f5f9 100%)', overflow: 'hidden' }}>
-      {renderAdminNav()}
+    <div className="admin-wrapper" style={{ overflow: 'hidden' }}>
+      <PremiumSidebar activeId="complaints" />
       <main className="admin-main" style={{ overflowY: 'auto', height: '100vh', padding: '40px' }}>
         <div style={{ width: '100%', margin: '0 auto', animation: 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)' }}>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px' }}>
             <div>
-              <h1 style={{ margin: '0 0 8px 0', fontSize: '2rem', fontWeight: '800', color: 'var(--text-heading)', letterSpacing: '-0.5px' }}>
+              <h1 style={{ margin: '0 0 8px 0', fontSize: '2.4rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.5px' }}>
                 Complaints & Support
               </h1>
-              <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '1rem', fontWeight: '500' }}>
+              <p style={{ margin: 0, color: '#64748b', fontSize: '1.05rem', fontWeight: '500' }}>
                 Manage trust & safety issues reported by users.
               </p>
             </div>
-            
-            <div style={{ display: 'flex', gap: '16px' }}>
-              <div style={{ position: 'relative' }}>
-                <Search size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+          </div>
+
+          <div className="glass-panel">
+            <div className="panel-controls">
+              <div className="search-wrapper">
+                <Search size={18} className="input-icon" />
                 <input 
                   type="text" 
+                  className="modern-input"
                   placeholder="Search Ticket ID or Name..." 
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{ 
-                    padding: '10px 16px 10px 42px', borderRadius: '30px', border: '1px solid var(--border)', 
-                    background: 'var(--bg-card)', color: 'var(--text-main)', width: '320px', fontSize: '0.95rem', fontWeight: '500', outline: 'none',
-                    transition: 'all 0.2s'
-                  }}
-                  onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'}
-                  onBlur={e => e.currentTarget.style.borderColor = 'var(--border)'}
                 />
               </div>
               
-              <div style={{ position: 'relative' }}>
-                <button
-                  onClick={() => setIsFilterOpen(!isFilterOpen)}
-                  style={{ 
-                    padding: '10px 24px 10px 20px', borderRadius: '30px', border: 'none', 
-                    background: 'var(--bg-card)', color: 'var(--text-main)', fontSize: '0.95rem', fontWeight: '700', outline: 'none', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: '8px',
-                    transition: 'all 0.2s', height: '42px'
-                  }}
-                >
-                  <Filter size={18} />
-                  <span>Filter</span>
-                </button>
-
-                {isFilterOpen && (
-                  <div style={{ 
-                    position: 'absolute', top: '100%', right: 0, marginTop: '12px', 
-                    background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', 
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.08)', zIndex: 100, width: '340px', padding: '24px'
-                  }}>
-                    <h3 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', fontWeight: '800', color: 'var(--text-heading)' }}>Advanced Filters</h3>
-                    <div style={{ height: '1px', background: 'var(--border)', margin: '0 -24px 20px -24px' }}></div>
-                    
-                    <div style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)', letterSpacing: '1px', marginBottom: '16px' }}>STATUS</div>
-                    
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                      {['All', 'Open', 'In Review', 'Escalated', 'Resolved', 'Closed'].map(option => {
-                        const isSelected = filterStatus === option;
-                        return (
-                          <button 
-                            key={option}
-                            onClick={() => {
-                              setFilterStatus(option as any);
-                              setIsFilterOpen(false);
-                            }}
-                            style={{ 
-                              padding: '8px 18px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '700',
-                              borderRadius: '30px', border: `1px solid ${isSelected ? 'var(--primary)' : 'var(--border)'}`,
-                              background: isSelected ? 'var(--primary-light)' : 'transparent',
-                              color: isSelected ? 'var(--primary)' : 'var(--text-heading)',
-                              transition: 'all 0.2s', outline: 'none'
-                            }}
-                            onMouseOver={e => {
-                              if (!isSelected) e.currentTarget.style.borderColor = 'var(--text-muted)';
-                            }}
-                            onMouseOut={e => {
-                              if (!isSelected) e.currentTarget.style.borderColor = 'var(--border)';
-                            }}
-                          >
-                            {option}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+              <div className="filter-group">
+                <PremiumSelect 
+                  options={[
+                    { value: 'All', label: 'All Statuses' },
+                    'Open',
+                    'In Review',
+                    'Escalated',
+                    'Resolved',
+                    'Closed'
+                  ]}
+                  value={filterStatus}
+                  onChange={(val) => setFilterStatus(val as any)}
+                  icon={<Filter size={18} />}
+                  customLabel="Filter"
+                  hideChevron
+                />
               </div>
             </div>
-          </div>
 
-          <div className="admin-table-container">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Ticket ID</th>
-                  <th>Pet Owner</th>
-                  <th>Pet Sitter</th>
-                  <th>Complaint Type</th>
-                  <th>Priority</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                  <th style={{ textAlign: 'center' }}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredComplaints.map((complaint) => {
-                  const prioStyle = getPriorityStyle(complaint.priority);
-                  const statStyle = getStatusStyle(complaint.status);
-                  const StatIcon = statStyle.icon;
+            <div className="table-wrapper">
+              <table className="modern-table">
+                <thead>
+                  <tr>
+                    <th>Ticket ID</th>
+                    <th>Pet Owner</th>
+                    <th>Pet Sitter</th>
+                    <th>Complaint Type</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th style={{ textAlign: 'center' }}>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredComplaints.map((complaint) => {
+                    const prioStyle = getPriorityStyle(complaint.priority);
+                    const statStyle = getStatusStyle(complaint.status);
+                    const StatIcon = statStyle.icon;
 
-                  return (
-                    <tr key={complaint.id}>
-                      <td><span style={{ fontWeight: '800', color: 'var(--text-heading)' }}>{complaint.id}</span></td>
-                      <td>
-                        <div style={{ fontWeight: '700', color: 'var(--text-heading)' }}>{complaint.submittedBy.name}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '2px' }}>{complaint.submittedBy.role}</div>
-                      </td>
-                      <td>
-                        <div style={{ fontWeight: '700', color: 'var(--text-heading)' }}>{complaint.againstUser.name}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '600', marginTop: '2px' }}>{complaint.againstUser.role}</div>
-                      </td>
-                      <td><span style={{ fontWeight: '600', color: 'var(--text-heading)' }}>{complaint.type}</span></td>
-                      <td>
-                        <span style={{ 
-                          display: 'inline-flex', padding: '6px 12px', borderRadius: '30px', fontSize: '0.8rem', 
-                          fontWeight: '800', background: prioStyle.bg, color: prioStyle.color 
-                        }}>
-                          {complaint.priority}
-                        </span>
-                      </td>
-                      <td>
-                        <span style={{ 
-                          display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', 
-                          borderRadius: '30px', fontSize: '0.8rem', fontWeight: '800', 
-                          background: statStyle.bg, color: statStyle.color 
-                        }}>
-                          <StatIcon size={14} /> {complaint.status}
-                        </span>
-                      </td>
-                      <td>
-                        <span style={{ fontWeight: '600', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    return (
+                      <tr key={complaint.id} className="table-row">
+                        <td><span className="booking-id-badge">{complaint.id}</span></td>
+                        <td>
+                          <div className="user-block">
+                            <div className="user-avatar-small bg-blue">{complaint.submittedBy.name.charAt(0)}</div>
+                            <div>
+                              <div className="user-name">{complaint.submittedBy.name}</div>
+                              <div className="user-email">{complaint.submittedBy.role}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="user-block">
+                            <div className="user-avatar-small bg-rose">{complaint.againstUser.name.charAt(0)}</div>
+                            <div>
+                              <div className="user-name">{complaint.againstUser.name}</div>
+                              <div className="user-email">{complaint.againstUser.role}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span className="date-text">{complaint.type}</span></td>
+                        <td>
+                          <span className="modern-status-pill" style={{ background: prioStyle.bg, color: prioStyle.color }}>
+                            {complaint.priority}
+                          </span>
+                        </td>
+                        <td>
+                          <span className="modern-status-pill" style={{ background: statStyle.bg, color: statStyle.color }}>
+                            <StatIcon size={14} /> {complaint.status}
+                          </span>
+                        </td>
+                        <td className="date-text">
                           {new Date(complaint.createdAt).toLocaleDateString()}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        <button 
-                          onClick={() => navigate(`/admin/complaints/${complaint.id.replace('#', '')}`)}
-                          className="view-details-btn"
-                        >
-                          <Eye size={14} /> View
-                        </button>
-                      </td>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <Link 
+                            to={`/admin/complaints/${complaint.id.replace('#', '')}`}
+                            className="page-btn"
+                            style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}
+                          >
+                            <Eye size={14} /> View
+                          </Link>
+                        </td>
                     </tr>
                   );
                 })}
@@ -318,7 +236,7 @@ export const ComplaintsList: React.FC = () => {
               </tbody>
             </table>
           </div>
-
+          </div>
         </div>
       </main>
     </div>

@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import {
-  ChevronLeft, ChevronRight, Mail, Phone, Calendar, MapPin, 
-  CheckCircle, XCircle, Ban, PawPrint, Loader2, User,Shield, Info, FileText, AlertCircle, LogOut
+  ChevronLeft, Mail, Phone, Calendar, MapPin, 
+  CheckCircle, XCircle, Ban, Loader2, User,Shield, Info, FileText, AlertCircle
 } from 'lucide-react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useAdminAuth } from '../../components/admin/AdminAuthContext';
+import { useParams, useNavigate } from 'react-router-dom';
 import { API_ROUTES } from '../../constants/apiConstants';
+import PremiumSidebar from '../../components/admin/PremiumSidebar';
 import './AdminDashboard.css';
-
-import { adminSidebarNavItems } from '../../constants/adminNav';
 
 interface SitterDetailsProps {
   sitter?: any;
@@ -155,8 +153,6 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
 }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { adminUser, logoutAdmin } = useAdminAuth();
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   const [fetchedData, setFetchedData] = React.useState<any | null>(null);
   const [loading, setLoading] = React.useState(!!id);
@@ -237,124 +233,6 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
     }
   };
   
-  // ── Sidebar renderer (only used on the standalone route) ──────────────────
-  const renderSidebar = () => (
-    <aside
-      className="admin-sidebar"
-      style={{
-        width: isSidebarExpanded ? '280px' : '80px',
-        transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        overflowX: 'hidden',
-      }}
-    >
-      {/* Logo + collapse toggle */}
-      <div style={{
-        padding: '24px 16px',
-        borderBottom: '1px solid rgba(255,255,255,0.1)',
-        display: 'flex', alignItems: 'center',
-        justifyContent: isSidebarExpanded ? 'space-between' : 'center',
-        flexDirection: isSidebarExpanded ? 'row' : 'column',
-        gap: '12px', transition: 'all 0.3s',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            width: '44px', height: '44px', borderRadius: '12px',
-            backgroundColor: 'var(--primary-light)', color: 'var(--primary)',
-            display: 'grid', placeItems: 'center',
-            boxShadow: '0 4px 12px rgba(13, 148, 136, 0.3)', flexShrink: 0,
-          }}>
-            <PawPrint size={24} />
-          </div>
-          {isSidebarExpanded && (
-            <span style={{ fontSize: '1.3rem', fontWeight: '800', color: 'white', letterSpacing: '-0.3px' }}>
-              <span style={{ color: 'var(--primary)' }}>Pet</span>Buddy
-            </span>
-          )}
-        </div>
-        <button
-          onClick={() => setIsSidebarExpanded(p => !p)}
-          style={{
-            background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%',
-            width: '28px', height: '28px', display: 'grid', placeItems: 'center',
-            color: 'white', cursor: 'pointer', transition: 'all 0.2s',
-            outline: 'none', boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
-          }}
-          onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
-          onMouseOut={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
-          title={isSidebarExpanded ? 'Collapse Sidebar' : 'Expand Sidebar'}
-        >
-          {isSidebarExpanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-        </button>
-      </div>
-
-      {/* Nav links */}
-      <nav style={{ padding: '16px 0', flex: 1 }}>
-        {adminSidebarNavItems.map(item => {
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.name}
-              to={item.path}
-              className={`sidebar-nav-link ${item.id === 'dashboard' ? 'active' : ''}`}
-              style={{
-                justifyContent: isSidebarExpanded ? 'flex-start' : 'center',
-                gap: isSidebarExpanded ? '12px' : '0',
-              }}
-              title={!isSidebarExpanded ? item.name : undefined}
-            >
-              <Icon size={20} className="nav-icon" />
-              {isSidebarExpanded && <span style={{ whiteSpace: 'nowrap' }}>{item.name}</span>}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Admin avatar */}
-      <div
-        style={{
-          display: 'flex', alignItems: 'center',
-          justifyContent: isSidebarExpanded ? 'flex-start' : 'center',
-          gap: isSidebarExpanded ? '12px' : '0',
-          padding: '12px 24px', color: '#cbd5e1',
-          borderLeft: '4px solid transparent',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
-          marginTop: 'auto', width: '100%', boxSizing: 'border-box',
-        }}
-        title={!isSidebarExpanded ? (adminUser?.fullName ?? '') : undefined}
-      >
-        <div style={{
-          width: '24px', height: '24px', borderRadius: '50%',
-          backgroundColor: 'var(--primary)', color: 'white',
-          display: 'grid', placeItems: 'center', fontWeight: '800',
-          fontSize: '0.75rem', flexShrink: 0,
-          boxShadow: '0 2px 6px rgba(13, 148, 136, 0.3)',
-        }}>
-          {adminUser?.fullName?.charAt(0).toUpperCase()}
-        </div>
-        {isSidebarExpanded && (
-          <span style={{ whiteSpace: 'nowrap', fontWeight: '500', fontSize: '0.95rem', color: '#cbd5e1' }}>
-            {adminUser?.fullName}
-          </span>
-        )}
-      </div>
-
-      {/* Sign-out */}
-      <button
-        onClick={() => { if (window.confirm('Are you sure you want to log out?')) logoutAdmin(); }}
-        className="sidebar-footer-btn"
-        style={{
-          justifyContent: isSidebarExpanded ? 'flex-start' : 'center',
-          gap: isSidebarExpanded ? '12px' : '0',
-          marginBottom: '16px',
-        }}
-        title={!isSidebarExpanded ? 'Sign Out' : undefined}
-      >
-        <LogOut size={20} className="nav-icon" />
-        {isSidebarExpanded && <span style={{ whiteSpace: 'nowrap' }}>Sign Out</span>}
-      </button>
-    </aside>
-  );
-
   if (loading) {
     const loadingNode = (
       <div style={{
@@ -371,7 +249,7 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
     );
     if (id) return (
       <div className="admin-wrapper">
-        {renderSidebar()}
+        <PremiumSidebar activeId="users" />
         <main className="admin-main" style={{ overflowY: 'auto', height: '100vh' }}>
           <div style={{ padding: '32px' }}>{loadingNode}</div>
         </main>
@@ -411,7 +289,7 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
     );
     if (id) return (
       <div className="admin-wrapper">
-        {renderSidebar()}
+        <PremiumSidebar activeId="users" />
         <main className="admin-main" style={{ overflowY: 'auto', height: '100vh' }}>
           <div style={{ padding: '32px' }}>{errorNode}</div>
         </main>
@@ -869,7 +747,7 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
   if (id) {
     return (
       <div className="admin-wrapper">
-        {renderSidebar()}
+        <PremiumSidebar activeId="users" />
         <main className="admin-main" style={{ overflowY: 'auto', height: '100vh' }}>
           <div style={{ padding: '32px' }}>{detailContent}</div>
         </main>

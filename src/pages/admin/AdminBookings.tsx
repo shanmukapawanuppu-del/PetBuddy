@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Link, Navigate } from "react-router-dom";
-import { Search, Filter } from "lucide-react";
+import { Navigate } from "react-router-dom";
+import { Search, Filter, CalendarDays, CheckCircle, Clock, XCircle, Upload } from "lucide-react";
 import { useAdminAuth } from "../../components/admin/AdminAuthContext";
-console.log('AdminBookings component rendered');
-// Mock booking data
+import PremiumSidebar from "../../components/admin/PremiumSidebar";
+import PremiumSelect from "../../components/admin/PremiumSelect";
+import "../../components/admin/PremiumTable.css";
+
 interface Booking {
   id: string;
   owner: { name: string; email: string };
@@ -25,14 +27,7 @@ const mockBookings: Booking[] = Array.from({ length: 45 }).map((_, i) => {
   };
 });
 
-const statusOptions = [
-  "All",
-  "Pending",
-  "Accepted",
-  "In Progress",
-  "Completed",
-  "Cancelled",
-];
+const statusOptions = ["All", "Pending", "Accepted", "In Progress", "Completed", "Cancelled"];
 
 const AdminBookings: React.FC = () => {
   const { isAuthenticated } = useAdminAuth();
@@ -44,25 +39,21 @@ const AdminBookings: React.FC = () => {
   const itemsPerPage = 8;
 
   useEffect(() => {
-    // Simulate API fetch delay
     const timer = setTimeout(() => {
       setBookings(mockBookings);
       setIsLoading(false);
-    }, 1500);
+    }, 1000);
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, filterStatus]);
+  useEffect(() => { setCurrentPage(1); }, [search, filterStatus]);
+
   const filtered = useMemo(() => {
     return bookings.filter((b) => {
       const matchesSearch =
         b.id.toLowerCase().includes(search.toLowerCase()) ||
         b.owner.name.toLowerCase().includes(search.toLowerCase()) ||
-        b.owner.email.toLowerCase().includes(search.toLowerCase()) ||
-        b.sitter.name.toLowerCase().includes(search.toLowerCase()) ||
-        b.sitter.email.toLowerCase().includes(search.toLowerCase());
+        b.sitter.name.toLowerCase().includes(search.toLowerCase());
       const matchesStatus = filterStatus === "All" || b.status === filterStatus;
       return matchesSearch && matchesStatus;
     });
@@ -71,55 +62,28 @@ const AdminBookings: React.FC = () => {
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginatedData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  const stats = useMemo(() => {
+    return {
+      total: bookings.length,
+      pending: bookings.filter(b => b.status === 'Pending').length,
+      completed: bookings.filter(b => b.status === 'Completed').length,
+      cancelled: bookings.filter(b => b.status === 'Cancelled').length,
+    };
+  }, [bookings]);
+
   const handleExportCSV = () => {
-    if (filtered.length === 0) {
-      alert("No data to export");
-      return;
-    }
-    
+    if (filtered.length === 0) return alert("No data to export");
     const htmlTable = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-      <head>
-        <meta charset="utf-8" />
-        <style>
-          table { border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; }
-          th { background-color: #0d9488; color: #ffffff; padding: 14px; font-weight: bold; font-size: 14px; text-transform: uppercase; border: 1px solid #c0d6d4; text-align: left; }
-          td { padding: 12px; border: 1px solid #e2e8f0; font-size: 13px; color: #334155; vertical-align: middle; }
-          .booking-id { font-weight: bold; color: #0d9488; font-size: 14px; }
-          .status-pending { background-color: #ffedd5; color: #c2410c; font-weight: bold; text-align: center; }
-          .status-inprogress { background-color: #dbeafe; color: #1d4ed8; font-weight: bold; text-align: center; }
-          .status-completed { background-color: #d1fae5; color: #047857; font-weight: bold; text-align: center; }
-          .status-cancelled { background-color: #fee2e2; color: #b91c1c; font-weight: bold; text-align: center; }
-          .header-title { font-size: 24px; font-weight: bold; color: #0f172a; padding: 20px; border: none; text-align: left; background: #f8fafc; }
-        </style>
-      </head>
+      <head><meta charset="utf-8" /></head>
       <body>
         <table>
-          <tr><th colspan="5" class="header-title">✨ PetBuddy Premium Bookings Export ✨</th></tr>
-          <tr>
-            <th>Booking ID</th>
-            <th>Owner Details</th>
-            <th>Sitter Details</th>
-            <th>Duration</th>
-            <th>Status</th>
-          </tr>
-          ${filtered.map(b => {
-            const statusClass = "status-" + b.status.replace(/\s+/g, "").toLowerCase();
-            return `
-            <tr>
-              <td class="booking-id">${b.id}</td>
-              <td><b>${b.owner.name}</b><br/>${b.owner.email}</td>
-              <td><b>${b.sitter.name}</b><br/>${b.sitter.email}</td>
-              <td>${b.startDate} <br/><span style="color:#64748b">to</span> ${b.endDate}</td>
-              <td class="${statusClass}">${b.status}</td>
-            </tr>
-            `;
-          }).join("")}
+          <tr><th>Booking ID</th><th>Owner</th><th>Sitter</th><th>Duration</th><th>Status</th></tr>
+          ${filtered.map(b => `<tr><td>${b.id}</td><td>${b.owner.name}</td><td>${b.sitter.name}</td><td>${b.startDate} to ${b.endDate}</td><td>${b.status}</td></tr>`).join("")}
         </table>
       </body>
       </html>
     `;
-
     const blob = new Blob([htmlTable], { type: "application/vnd.ms-excel" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -131,466 +95,454 @@ const AdminBookings: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  if (!isAuthenticated) {
-    // If not authenticated, redirect to login page
-    return <Navigate to="/admin/login" replace />;
-  }
+  if (!isAuthenticated) return <Navigate to="/admin/login" replace />;
 
-  // Render Admin Bookings page
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Pending': return { bg: 'rgba(245, 158, 11, 0.15)', color: '#d97706', border: 'rgba(245, 158, 11, 0.3)' };
+      case 'Accepted': return { bg: 'rgba(56, 189, 248, 0.15)', color: '#0284c7', border: 'rgba(56, 189, 248, 0.3)' };
+      case 'In Progress': return { bg: 'rgba(99, 102, 241, 0.15)', color: '#4f46e5', border: 'rgba(99, 102, 241, 0.3)' };
+      case 'Completed': return { bg: 'rgba(16, 185, 129, 0.15)', color: '#059669', border: 'rgba(16, 185, 129, 0.3)' };
+      case 'Cancelled': return { bg: 'rgba(239, 68, 68, 0.15)', color: '#dc2626', border: 'rgba(239, 68, 68, 0.3)' };
+      default: return { bg: 'rgba(148, 163, 184, 0.15)', color: '#475569', border: 'rgba(148, 163, 184, 0.3)' };
+    }
+  };
+
   return (
-    <section className="admin-dashboard page-content admin-bookings-page">
-      <div>
-        <div className="admin-page-shell">
-          <header className="admin-page-topbar">
-            <div className="admin-navbar-shell">
-              <nav className="admin-global-links">
-                <Link to="/admin/dashboard" className="admin-global-link">
-                  Dashboard
-                </Link>
-                <Link to="/admin/bookings" className="admin-global-link active">
-                  Bookings
-                </Link>
-                {/* <Link to="/home" className="admin-global-link">Website</Link> */}
-              </nav>
+    <div className="premium-dashboard">
+      <PremiumSidebar activeId="bookings" />
+      <main className="dashboard-main">
+        <div className="dashboard-content">
+          
+          {/* Header Area */}
+          <header className="page-header">
+            <div>
+              <h1 className="page-title">Bookings Overview</h1>
+              <p className="page-subtitle">Manage and track all pet sitting appointments</p>
             </div>
-            <div className="admin-top-actions">
-              <button 
-                onClick={handleExportCSV}
-                style={{ padding: '10px 24px', borderRadius: '999px', background: 'var(--primary, #0d9488)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', boxShadow: '0 4px 12px rgba(13, 148, 136, 0.2)' }}
-              >
-                Export Excel
-              </button>
-            </div>
+            <button onClick={handleExportCSV} className="export-btn">
+              <Upload size={18} /> Export Data
+            </button>
           </header>
 
-
-
-          <section className="admin-bookings-panel card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-              
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <Filter size={16} color="#64748b" style={{ position: 'absolute', left: '16px', pointerEvents: 'none' }} />
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  style={{
-                    appearance: 'none',
-                    padding: '10px 36px 10px 42px',
-                    borderRadius: '999px',
-                    border: '1px solid #e2e8f0',
-                    background: '#ffffff',
-                    color: '#334155',
-                    fontSize: '0.9rem',
-                    fontWeight: '700',
-                    cursor: 'pointer',
-                    minWidth: '130px',
-                    outline: 'none',
-                    boxShadow: '0 2px 4px rgba(15, 23, 42, 0.02)'
-                  }}
-                >
-                  {statusOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt === 'All' ? 'Filter' : opt}
-                    </option>
-                  ))}
-                </select>
-                <div style={{ position: 'absolute', right: '16px', pointerEvents: 'none', fontSize: '0.6rem', color: '#64748b' }}>▼</div>
+          {/* Stats Cards */}
+          <div className="stats-grid">
+            <div className="stat-card" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color: 'white' }}>
+              <div className="stat-icon"><CalendarDays size={24} color="#38bdf8" /></div>
+              <div className="stat-info">
+                <span className="stat-value">{stats.total}</span>
+                <span className="stat-label">Total Bookings</span>
               </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: 'rgba(245,158,11,0.1)' }}><Clock size={24} color="#d97706" /></div>
+              <div className="stat-info">
+                <span className="stat-value" style={{ color: '#0f172a' }}>{stats.pending}</span>
+                <span className="stat-label">Pending</span>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.1)' }}><CheckCircle size={24} color="#059669" /></div>
+              <div className="stat-info">
+                <span className="stat-value" style={{ color: '#0f172a' }}>{stats.completed}</span>
+                <span className="stat-label">Completed</span>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: 'rgba(239,68,68,0.1)' }}><XCircle size={24} color="#dc2626" /></div>
+              <div className="stat-info">
+                <span className="stat-value" style={{ color: '#0f172a' }}>{stats.cancelled}</span>
+                <span className="stat-label">Cancelled</span>
+              </div>
+            </div>
+          </div>
 
-              <div style={{ position: 'relative', minWidth: '320px', flex: '1', maxWidth: '400px' }}>
-                <Search size={16} color="#64748b" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-                <input
-                  type="text"
-                  placeholder="Search with Booking Id..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 16px 10px 42px',
-                    borderRadius: '999px',
-                    border: '1px solid #e2e8f0',
-                    background: '#ffffff',
-                    color: '#334155',
-                    fontSize: '0.95rem',
-                    outline: 'none',
-                    boxShadow: '0 2px 4px rgba(15, 23, 42, 0.02)',
-                    transition: 'border-color 0.2s'
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = '#0d9488'}
-                  onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+          {/* Main Panel */}
+          <div className="glass-panel">
+            {/* Controls */}
+            <div className="panel-controls">
+              <div className="filter-group">
+                <PremiumSelect 
+                  options={statusOptions.map(opt => ({ value: opt, label: opt === 'All' ? 'All Statuses' : opt }))}
+                  value={filterStatus}
+                  onChange={setFilterStatus}
+                  icon={<Filter size={18} />}
+                  customLabel="Filter"
+                  hideChevron
                 />
               </div>
-
-            </div>
-
-            <div className="bookings-table-container">
-              <div className="bookings-table-header">
-                <div>BOOKING ID</div>
-                <div>OWNER</div>
-                <div>SITTER</div>
-                <div>DURATION</div>
-                <div>STATUS</div>
-              </div>
-              
-              <div className="bookings-table-body">
-                {isLoading ? (
-                  <div style={{ padding: '80px', textAlign: 'center', color: '#64748b' }}>
-                    <div className="spinner-animation"></div>
-                    <div style={{ fontWeight: '600' }}>Loading bookings data...</div>
-                  </div>
-                ) : filtered.length === 0 ? (
-                  <div className="empty-row">
-                    No bookings found. Try a different search or filter.
-                  </div>
-                ) : (
-                  paginatedData.map((b) => (
-                    <div key={b.id} className="bookings-table-row">
-                      <div className="booking-col-id">
-                        <div className="entity-name" style={{ color: 'var(--primary)', fontWeight: '800' }}>{b.id}</div>
-                      </div>
-                      <div className="booking-col-user">
-                        <div>
-                          <div className="entity-name">{b.owner.name}</div>
-                          <div className="entity-subtitle">{b.owner.email}</div>
-                        </div>
-                      </div>
-                      <div className="booking-col-user">
-                        <div>
-                          <div className="entity-name">{b.sitter.name}</div>
-                          <div className="entity-subtitle">{b.sitter.email}</div>
-                        </div>
-                      </div>
-                      <div className="booking-col-dates">
-                        <div className="duration-dates">{b.startDate} → {b.endDate}</div>
-                        <div className="duration-days-badge">{Math.floor((new Date(b.endDate).getTime() - new Date(b.startDate).getTime()) / (1000 * 60 * 60 * 24))} days</div>
-                      </div>
-                      <div className="booking-col-status">
-                         <span className={`status-pill status-${b.status.replace(/\s+/g, "").toLowerCase()}`}>
-                           {b.status}
-                         </span>
-                      </div>
-                    </div>
-                  ))
-                )}
+              <div className="search-wrapper">
+                <Search size={18} className="input-icon" />
+                <input 
+                  type="text" 
+                  placeholder="Search by ID, Owner, or Sitter..." 
+                  value={search} 
+                  onChange={(e) => setSearch(e.target.value)} 
+                  className="modern-input"
+                />
               </div>
             </div>
 
+            {/* Table */}
+            <div className="table-wrapper">
+              <table className="modern-table">
+                <thead>
+                  <tr>
+                    <th>Booking ID</th>
+                    <th>Owner Details</th>
+                    <th>Sitter Details</th>
+                    <th>Timeline</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr><td colSpan={5} className="loading-cell"><div className="loader"></div></td></tr>
+                  ) : filtered.length === 0 ? (
+                    <tr><td colSpan={5} className="empty-cell">No bookings match your criteria.</td></tr>
+                  ) : (
+                    paginatedData.map((b) => {
+                      const statusStyle = getStatusColor(b.status);
+                      return (
+                        <tr key={b.id} className="table-row">
+                          <td><span className="booking-id-badge">{b.id}</span></td>
+                          <td>
+                            <div className="user-block">
+                              <div className="user-avatar-small bg-blue">{b.owner.name.charAt(0)}</div>
+                              <div>
+                                <div className="user-name">{b.owner.name}</div>
+                                <div className="user-email">{b.owner.email}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="user-block">
+                              <div className="user-avatar-small bg-purple">{b.sitter.name.charAt(0)}</div>
+                              <div>
+                                <div className="user-name">{b.sitter.name}</div>
+                                <div className="user-email">{b.sitter.email}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div className="timeline-block">
+                              <span className="date-text">{b.startDate} <span style={{color: '#94a3b8', margin: '0 4px'}}>to</span> {b.endDate}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <span className="modern-status-pill" style={{ backgroundColor: statusStyle.bg, color: statusStyle.color, border: `1px solid ${statusStyle.border}` }}>
+                              {b.status}
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
             {!isLoading && totalPages > 1 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderTop: '1px solid rgba(15, 23, 42, 0.08)' }}>
-                <div style={{ color: '#64748b', fontSize: '0.9rem' }}>
-                  Showing <span style={{ fontWeight: 'bold', color: '#0f172a' }}>{(currentPage - 1) * itemsPerPage + 1}</span> to <span style={{ fontWeight: 'bold', color: '#0f172a' }}>{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of <span style={{ fontWeight: 'bold', color: '#0f172a' }}>{filtered.length}</span> results
+              <div className="pagination-wrapper">
+                <div className="pagination-info">
+                  Showing <b>{(currentPage - 1) * itemsPerPage + 1}</b> to <b>{Math.min(currentPage * itemsPerPage, filtered.length)}</b> of <b>{filtered.length}</b> entries
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button 
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="pagination-btn"
-                  >
-                    Previous
-                  </button>
-                  <button 
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
-                    className="pagination-btn"
-                  >
-                    Next
-                  </button>
+                <div className="pagination-controls">
+                  <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="page-btn">Previous</button>
+                  <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="page-btn">Next</button>
                 </div>
               </div>
             )}
-
-          </section>
+          </div>
         </div>
-      </div>
+      </main>
 
       <style>{`
-        .pagination-btn {
-          padding: 8px 18px;
-          border-radius: 999px;
-          border: 1px solid #e2e8f0;
-          background: #ffffff;
-          color: #334155;
-          cursor: pointer;
-          font-weight: 700;
-          font-size: 0.85rem;
-          transition: all 0.2s;
-        }
-        .pagination-btn:hover:not(:disabled) {
-          background: #f8fafc;
-          color: var(--primary, #0d9488);
-          border-color: #cbd5e1;
-        }
-        .pagination-btn:disabled {
-          background: #f8fafc;
-          color: #94a3b8;
-          cursor: not-allowed;
-          opacity: 0.6;
+        .premium-dashboard {
+          display: flex;
+          height: 100vh;
+          font-family: 'Inter', system-ui, sans-serif;
+          overflow: hidden;
         }
 
-        .spinner-animation {
-          display: inline-block;
-          width: 36px;
-          height: 36px;
-          border: 3px solid #e2e8f0;
-          border-top-color: var(--primary, #0d9488);
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin-bottom: 16px;
+        /* --- MAIN CONTENT --- */
+        .dashboard-main {
+          flex: 1;
+          overflow-y: auto;
         }
 
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        .admin-bookings-page {
-          background: #f8fafc;
-          padding: 40px 24px;
-          min-height: 100vh;
-        }
-
-        .admin-page-shell {
-          max-width: 1280px;
+        .dashboard-content {
+          max-width: 1400px;
           margin: 0 auto;
-          background: #ffffff;
-          border-radius: 20px;
-          padding: 24px 20px;
-          box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.05);
-          border: 1px solid rgba(15, 23, 42, 0.04);
+          padding: 40px;
         }
 
-        .admin-page-topbar {
+        /* Header */
+        .page-header {
           display: flex;
-          align-items: center;
           justify-content: space-between;
-          gap: 24px;
+          align-items: flex-end;
           margin-bottom: 32px;
-          flex-wrap: wrap;
         }
 
-        .admin-navbar-shell {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          min-width: 0;
-        }
-
-        .admin-brand {
-          font-size: 0.85rem;
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-          color: var(--primary, #0d9488);
-          font-weight: 800;
-        }
-
-        .admin-global-links {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          align-items: center;
-        }
-
-        .admin-global-link {
-          padding: 10px 20px;
-          border-radius: 999px;
-          border: 1px solid transparent;
-          background: rgba(15, 23, 42, 0.03);
-          color: var(--text-main, #334155);
-          font-weight: 700;
-          font-size: 0.95rem;
-          transition: var(--transition, all 0.2s);
-          text-decoration: none;
-        }
-
-        .admin-global-link:hover {
-          background: rgba(15, 23, 42, 0.06);
-          transform: translateY(-1px);
-        }
-
-        .admin-global-link.active {
-          background: var(--primary, #0d9488);
-          color: #ffffff;
-          border-color: transparent;
-        }
-
-        .admin-page-topbar h2 {
+        .page-title {
           font-size: 2.2rem;
           font-weight: 800;
-          color: var(--text-heading, #0f172a);
-          margin: 0 0 24px 0;
-          letter-spacing: -0.02em;
-        }
-
-        .admin-top-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          align-items: center;
-        }
-
-        .admin-bookings-panel {
-          padding: 0;
-          background: transparent;
-          border: none;
-          box-shadow: none;
-          border-radius: 0;
-        }
-
-
-
-        .bookings-table-container {
-          background: #ffffff;
-          border-radius: 16px;
-          border: 1px solid rgba(15, 23, 42, 0.08);
-          overflow: hidden;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-        }
-
-        /* ── TABLE LAYOUT: header & rows share identical columns ── */
-        .bookings-table-header,
-        .bookings-table-row {
-          display: grid;
-          grid-template-columns: 100px 1fr 1fr 200px 120px;
-          align-items: center;
-          padding: 0 16px;
-          gap: 0;
-        }
-
-        .bookings-table-header {
-          height: 52px;
-          background: rgba(15, 23, 42, 0.03);
-          border-bottom: 1px solid rgba(15, 23, 42, 0.08);
           color: #0f172a;
-          font-weight: 800;
-          font-size: 0.78rem;
-          text-transform: uppercase;
-          letter-spacing: 0.07em;
+          margin: 0 0 8px 0;
+          letter-spacing: -0.5px;
         }
 
-        .bookings-table-header > div {
+        .page-subtitle {
+          color: #64748b;
+          font-size: 1.1rem;
+          margin: 0;
+        }
+
+        .export-btn {
           display: flex;
           align-items: center;
-          height: 100%;
+          gap: 8px;
+          padding: 12px 24px;
+          border-radius: 99px;
+          background: #0f172a;
+          color: white;
+          font-weight: 600;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s;
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        }
+        .export-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2); }
+
+        /* Stats Grid */
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 24px;
+          margin-bottom: 32px;
         }
 
-        .bookings-table-row {
-          min-height: 72px;
-          padding-top: 12px;
-          padding-bottom: 12px;
-          border-bottom: 1px solid rgba(15, 23, 42, 0.05);
-          transition: background 0.18s;
+        .stat-card {
+          background: white;
+          border-radius: 20px;
+          padding: 24px;
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+          border: 1px solid rgba(0,0,0,0.02);
+          transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-4px); }
+
+        .stat-icon {
+          width: 56px;
+          height: 56px;
+          border-radius: 16px;
+          display: grid;
+          place-items: center;
         }
 
-        .bookings-table-row:last-child { border-bottom: none; }
-        .bookings-table-row:hover { background: rgba(13,148,136,0.03); }
+        .stat-info { display: flex; flex-direction: column; }
+        .stat-value { font-size: 1.8rem; font-weight: 800; line-height: 1; margin-bottom: 6px; }
+        .stat-label { font-size: 0.9rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* column‑level alignment */
-        .booking-col-id   { display: flex; align-items: center; }
-        .booking-col-user { display: flex; align-items: center; }
-        .booking-col-dates {
+
+        /* Glass Panel */
+        .glass-panel {
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(10px);
+          border-radius: 24px;
+          border: 1px solid rgba(255,255,255,0.8);
+          box-shadow: 0 10px 40px rgba(15, 23, 42, 0.04);
+          overflow: hidden;
           display: flex;
           flex-direction: column;
-          justify-content: center;
-          gap: 4px;
-          white-space: normal;
-          overflow: visible;
-        }
-        .booking-col-status {
-          display: flex;
-          align-items: center;
-          justify-content: center;
         }
 
-        /* Duration cell */
-        .duration-dates {
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: #334155;
-          white-space: nowrap;
-        }
-        .duration-days-badge {
-          display: inline-flex;
+        .panel-controls {
+          padding: 24px;
+          display: flex;
+          justify-content: space-between;
           align-items: center;
-          background: rgba(13,148,136,0.10);
-          color: #0d9488;
-          font-weight: 700;
-          font-size: 0.78rem;
-          padding: 2px 10px;
-          border-radius: 999px;
-          width: fit-content;
+          border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+          background: white;
         }
 
-        .user-info-wrapper {
+        .select-wrapper, .search-wrapper {
+          position: relative;
           display: flex;
           align-items: center;
-          gap: 12px;
         }
+
+        .input-icon {
+          position: absolute;
+          left: 16px;
+          pointer-events: none;
+          color: #94a3b8;
+        }
+
+        .modern-select, .modern-input {
+          appearance: none;
+          padding: 12px 20px 12px 44px;
+          border-radius: 99px;
+          border: 1px solid #e2e8f0;
+          background: #f8fafc;
+          color: #0f172a;
+          font-size: 0.95rem;
+          font-weight: 500;
+          outline: none;
+          transition: all 0.2s;
+        }
+        .modern-select:focus, .modern-input:focus { border-color: #3b82f6; background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
         
-        .user-avatar {
-          width: 38px;
-          height: 38px;
+        .modern-select { min-width: 160px; cursor: pointer; font-weight: 600; }
+        .modern-input { min-width: 320px; }
+
+        /* Table */
+        .table-wrapper {
+          overflow-x: auto;
+        }
+
+        .modern-table {
+          width: 100%;
+          border-collapse: collapse;
+          text-align: left;
+        }
+
+        .modern-table th {
+          padding: 20px 24px;
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: #64748b;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          background: #f8fafc;
+          border-bottom: 1px solid rgba(15,23,42,0.05);
+        }
+
+        .modern-table td {
+          padding: 20px 24px;
+          border-bottom: 1px solid rgba(15,23,42,0.03);
+          vertical-align: middle;
+        }
+
+        .table-row { transition: background 0.2s; animation: fadeIn 0.4s ease-out forwards; }
+        .table-row:hover { background: #f8fafc; }
+
+        .booking-id-badge {
+          background: #f1f5f9;
+          color: #334155;
+          padding: 6px 12px;
+          border-radius: 8px;
+          font-weight: 700;
+          font-size: 0.9rem;
+          font-family: monospace;
+          border: 1px solid #e2e8f0;
+        }
+
+        .user-block {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+
+        .user-avatar-small {
+          width: 40px;
+          height: 40px;
           border-radius: 12px;
           display: grid;
           place-items: center;
-          font-weight: 800;
+          font-weight: 700;
           font-size: 1.1rem;
-          flex-shrink: 0;
+          color: white;
         }
+        .bg-blue { background: linear-gradient(135deg, #38bdf8, #0284c7); }
+        .bg-purple { background: linear-gradient(135deg, #a78bfa, #7c3aed); }
 
-        .entity-name {
-          font-weight: 700;
-          color: var(--text-heading, #0f172a);
-          font-size: 0.95rem;
-          margin-bottom: 2px;
-        }
+        .user-name { font-weight: 700; color: #0f172a; font-size: 0.95rem; margin-bottom: 2px; }
+        .user-email { color: #64748b; font-size: 0.85rem; }
 
-        .entity-subtitle {
-          color: var(--text-muted, #64748b);
-          font-size: 0.85rem;
-        }
+        .date-text { font-weight: 600; color: #334155; font-size: 0.95rem; }
 
-
-        .empty-row {
-          grid-column: 1 / -1;
-          padding: 40px;
-          text-align: center;
-          color: var(--text-muted, #64748b);
-          font-weight: 500;
-          background: rgba(15, 23, 42, 0.02);
-        }
-
-        .status-pill {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
+        .modern-status-pill {
           padding: 8px 16px;
-          border-radius: 999px;
-          font-weight: 700;
+          border-radius: 99px;
           font-size: 0.85rem;
-          min-width: 90px;
-          text-align: center;
+          font-weight: 700;
+          display: inline-block;
         }
 
-        .status-pending { background: #ffedd5; color: #c2410c; }
-        .status-accepted { background: #e0f2fe; color: #0369a1; }
-        .status-inprogress { background: #dbeafe; color: #1d4ed8; }
-        .status-completed { background: #d1fae5; color: #047857; }
-        .status-cancelled { background: #fee2e2; color: #b91c1c; }
-
-
-
-        @media (max-width: 1024px) {
-          .bookings-table-container { overflow-x: auto; }
-          .bookings-table-header, .bookings-table-row { min-width: 800px; }
-          .admin-page-topbar { flex-direction: column; align-items: flex-start; }
-          .admin-top-actions { width: 100%; justify-content: flex-start; }
-          .admin-global-links { width: 100%; }
+        .pagination-wrapper {
+          padding: 24px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: white;
+          border-top: 1px solid rgba(15,23,42,0.05);
         }
 
-        @media (max-width: 700px) {
-          .admin-page-shell { padding: 24px; }
+        .pagination-info { color: #64748b; font-size: 0.95rem; }
+        .pagination-info b { color: #0f172a; font-weight: 700; }
+
+        .pagination-controls { display: flex; gap: 8px; }
+        .page-btn {
+          padding: 10px 20px;
+          border-radius: 10px;
+          border: 1px solid #e2e8f0;
+          background: white;
+          font-weight: 600;
+          color: #334155;
+          cursor: pointer;
+          transition: all 0.2s;
         }
+        .page-btn:hover:not(:disabled) { background: #f1f5f9; border-color: #cbd5e1; }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .loader {
+          width: 40px;
+          height: 40px;
+          border: 4px solid #f1f5f9;
+          border-top: 4px solid #3b82f6;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin: 40px auto;
+        }
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 24px;
+          margin-bottom: 32px;
+        }
+
+        .stat-card {
+          background: white;
+          border-radius: 20px;
+          padding: 24px;
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+          border: 1px solid rgba(0,0,0,0.02);
+          transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-4px); }
+
+        .stat-icon {
+          width: 56px;
+          height: 56px;
+          border-radius: 16px;
+          display: grid;
+          place-items: center;
+        }
+
+        .stat-info { display: flex; flex-direction: column; }
+        .stat-value { font-size: 1.8rem; font-weight: 800; line-height: 1; margin-bottom: 6px; }
+        .stat-label { font-size: 0.9rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
       `}</style>
-    </section>
+    </div>
   );
 };
 
