@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import {
-  ChevronLeft, Mail, Phone, Calendar, 
-  CheckCircle, XCircle, Ban, PawPrint, Loader2, User, CalendarCheck
-} from 'lucide-react';
+import { Phone, Mail, Calendar, PawPrint, Star, Ban, CheckCircle, ChevronLeft, Loader2, XCircle, Clock, User, CalendarCheck } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ConfirmModal } from '../../components/admin/ConfirmModal';
 import { API_ROUTES } from '../../constants/apiConstants';
 import PremiumSidebar from '../../components/admin/PremiumSidebar';
 import './AdminDashboard.css';
@@ -50,6 +48,7 @@ export const OwnerDetails: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<'BLOCK' | 'UNBLOCK' | null>(null);
   const [activeTab, setActiveTab] = useState<'pets' | 'bookings'>('pets');
 
   useEffect(() => {
@@ -106,6 +105,7 @@ export const OwnerDetails: React.FC = () => {
       alert('An error occurred.');
     } finally {
       setIsUpdatingStatus(false);
+      setConfirmAction(null);
     }
   };
 
@@ -214,23 +214,21 @@ export const OwnerDetails: React.FC = () => {
               <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
                 {owner.status?.toLowerCase() !== 'blocked' ? (
                   <button 
-                    onClick={() => handleUpdateStatusLocally('BLOCKED')} 
-                    disabled={isUpdatingStatus}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', borderRadius: '20px', fontWeight: '700', fontSize: '1rem', backgroundColor: '#ef4444', color: 'white', border: 'none', cursor: 'pointer', opacity: isUpdatingStatus ? 0.7 : 1, transition: 'all 0.2s', boxShadow: '0 8px 20px rgba(239, 68, 68, 0.3)' }}
+                    onClick={() => setConfirmAction('BLOCK')} 
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', borderRadius: '20px', fontWeight: '700', fontSize: '1rem', backgroundColor: '#ef4444', color: 'white', border: 'none', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 8px 20px rgba(239, 68, 68, 0.3)' }}
                     onMouseOver={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
                     onMouseOut={e => (e.currentTarget.style.transform = 'translateY(0)')}
                   >
-                    {isUpdatingStatus ? <Loader2 size={18} className="spin" /> : <Ban size={18} />} Block Account
+                    <Ban size={18} /> Block Account
                   </button>
                 ) : (
                   <button 
-                    onClick={() => handleUpdateStatusLocally('ACTIVE')} 
-                    disabled={isUpdatingStatus}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', borderRadius: '20px', fontWeight: '700', fontSize: '1rem', backgroundColor: 'var(--success)', color: 'white', border: 'none', cursor: 'pointer', opacity: isUpdatingStatus ? 0.7 : 1, transition: 'all 0.2s', boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)' }}
+                    onClick={() => setConfirmAction('UNBLOCK')} 
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', borderRadius: '20px', fontWeight: '700', fontSize: '1rem', backgroundColor: 'var(--success)', color: 'white', border: 'none', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)' }}
                     onMouseOver={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
                     onMouseOut={e => (e.currentTarget.style.transform = 'translateY(0)')}
                   >
-                    {isUpdatingStatus ? <Loader2 size={18} className="spin" /> : <CheckCircle size={18} />} Unblock Account
+                    <CheckCircle size={18} /> Unblock Account
                   </button>
                 )}
               </div>
@@ -404,12 +402,31 @@ export const OwnerDetails: React.FC = () => {
           </div>
         </>
       )}
+      
+      <ConfirmModal
+        isOpen={confirmAction !== null}
+        title={confirmAction === 'BLOCK' ? 'Block Owner' : 'Unblock Owner'}
+        message={
+          confirmAction === 'BLOCK' 
+            ? 'Are you sure you want to block this pet owner? They will no longer be able to use the platform.'
+            : 'Are you sure you want to unblock this pet owner? They will regain access to the platform.'
+        }
+        variant={confirmAction === 'BLOCK' ? 'danger' : 'primary'}
+        confirmText={confirmAction === 'BLOCK' ? 'Block Owner' : 'Unblock Owner'}
+        cancelText="Cancel"
+        isLoading={isUpdatingStatus}
+        onConfirm={() => {
+          if (confirmAction === 'BLOCK') handleUpdateStatusLocally('BLOCKED');
+          else if (confirmAction === 'UNBLOCK') handleUpdateStatusLocally('ACTIVE');
+        }}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   );
 
   return (
     <div className="admin-wrapper" style={{ overflow: 'hidden' }}>
-      <PremiumSidebar activeId="users" />
+      <PremiumSidebar activeId="dashboard" />
       <main className="admin-main" style={{ overflowY: 'auto', height: '100vh', padding: '40px' }}>
         {content}
       </main>

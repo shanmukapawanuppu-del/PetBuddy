@@ -86,10 +86,12 @@
 }
 
 .table-row { 
-  transition: background 0.2s; 
+  transition: all 0.2s; 
   animation: fadeIn 0.4s ease-out forwards; 
 }
-.table-row:hover { background: #f8fafc; }
+.table-row:hover { 
+  background: var(--primary-light, #f0fdfa); 
+}
 
 /* Common Badges */
 .booking-id-badge {
@@ -156,6 +158,10 @@
 
 .pagination-controls { display: flex; gap: 8px; }
 .page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   padding: 10px 20px;
   border-radius: 10px;
   border: 1px solid #e2e8f0;

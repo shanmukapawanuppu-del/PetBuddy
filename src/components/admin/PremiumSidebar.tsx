@@ -59,12 +59,14 @@ const PremiumSidebar: React.FC<PremiumSidebarProps> = ({ activeId }) => {
         })}
       </nav>
       <div className="sidebar-footer">
+        {/* <Link to="/admin/profile" style={{ textDecoration: 'none', color: 'inherit' }}> */}
         <div className="profile-section" title={!isSidebarExpanded ? adminUser?.fullName : undefined}>
           <div className="profile-avatar">{adminUser?.fullName?.charAt(0).toUpperCase()}</div>
           {isSidebarExpanded && <span className="profile-name">{adminUser?.fullName}</span>}
         </div>
+        {/* </Link> */}
         <button onClick={handleLogout} className="logout-btn" title={!isSidebarExpanded ? "Sign Out" : undefined}>
-          <LogOut size={22} className="nav-icon" /> 
+          <LogOut size={22} className="nav-icon" />
           {isSidebarExpanded && <span className="nav-text">Sign Out</span>}
         </button>
       </div>

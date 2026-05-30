@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API_ROUTES } from '../../constants/apiConstants';
+import { ConfirmModal } from '../../components/admin/ConfirmModal';
 import PremiumSidebar from '../../components/admin/PremiumSidebar';
 import './AdminDashboard.css';
 
@@ -189,6 +190,7 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
   };
 
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<'APPROVED' | 'REJECTED' | 'BLOCKED' | null>(null);
 
   const handleUpdateStatus = async (newStatus: string) => {
     const targetId = id || propsRawSitter?._id || propsRawSitter?.id;
@@ -230,6 +232,7 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
       alert(err.message || 'Failed to update status. Please try again.');
     } finally {
       setIsUpdatingStatus(false);
+      setConfirmAction(null);
     }
   };
   
@@ -249,7 +252,7 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
     );
     if (id) return (
       <div className="admin-wrapper">
-        <PremiumSidebar activeId="users" />
+        <PremiumSidebar activeId="dashboard" />
         <main className="admin-main" style={{ overflowY: 'auto', height: '100vh' }}>
           <div style={{ padding: '32px' }}>{loadingNode}</div>
         </main>
@@ -289,7 +292,7 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
     );
     if (id) return (
       <div className="admin-wrapper">
-        <PremiumSidebar activeId="users" />
+        <PremiumSidebar activeId="dashboard" />
         <main className="admin-main" style={{ overflowY: 'auto', height: '100vh' }}>
           <div style={{ padding: '32px' }}>{errorNode}</div>
         </main>
@@ -516,7 +519,7 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
             {sitter.status?.toLowerCase() === 'pending' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <button 
-                  onClick={() => handleUpdateStatus('APPROVED')} 
+                  onClick={() => setConfirmAction('APPROVED')} 
                   disabled={isUpdatingStatus}
                   className="btn btn-primary"
                   style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', fontWeight: '600', opacity: isUpdatingStatus ? 0.7 : 1, cursor: isUpdatingStatus ? 'not-allowed' : 'pointer' }}
@@ -524,7 +527,7 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
                   {isUpdatingStatus ? <Loader2 size={18} className="spin" /> : <CheckCircle size={18} />} Approve Profile
                 </button>
                 <button 
-                  onClick={() => handleUpdateStatus('REJECTED')} 
+                  onClick={() => setConfirmAction('REJECTED')} 
                   disabled={isUpdatingStatus}
                   className="btn"
                   style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', fontWeight: '600', backgroundColor: '#dc2626', color: 'white', border: 'none', transition: 'background-color 0.2s', opacity: isUpdatingStatus ? 0.7 : 1, cursor: isUpdatingStatus ? 'not-allowed' : 'pointer' }}
@@ -536,7 +539,7 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
 
             {sitter.status?.toLowerCase() === 'approved' && (
               <button 
-                onClick={() => handleUpdateStatus('BLOCKED')} 
+                onClick={() => setConfirmAction('BLOCKED')} 
                 disabled={isUpdatingStatus}
                 className="btn"
                 style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', fontWeight: '600', backgroundColor: '#ef4444', color: 'white', border: 'none', transition: 'background-color 0.2s', opacity: isUpdatingStatus ? 0.7 : 1, cursor: isUpdatingStatus ? 'not-allowed' : 'pointer' }}
@@ -547,7 +550,7 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
 
             {sitter.status?.toLowerCase() === 'blocked' && (
               <button 
-                onClick={() => handleUpdateStatus('APPROVED')} 
+                onClick={() => setConfirmAction('APPROVED')} 
                 disabled={isUpdatingStatus}
                 className="btn btn-primary"
                 style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 16px', borderRadius: '12px', fontWeight: '600', opacity: isUpdatingStatus ? 0.7 : 1, cursor: isUpdatingStatus ? 'not-allowed' : 'pointer' }}
@@ -740,6 +743,36 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmAction !== null}
+        title={
+          confirmAction === 'APPROVED' ? (sitter.status?.toLowerCase() === 'blocked' ? 'Unblock Sitter' : 'Approve Sitter')
+          : confirmAction === 'REJECTED' ? 'Reject Sitter'
+          : 'Block Sitter'
+        }
+        message={
+          confirmAction === 'APPROVED' ? (
+            sitter.status?.toLowerCase() === 'blocked' 
+              ? 'Are you sure you want to unblock this sitter? They will regain access to their account.'
+              : 'Are you sure you want to approve this sitter profile? They will be visible to pet owners.'
+          )
+          : confirmAction === 'REJECTED' ? 'Are you sure you want to reject this sitter profile? They will be notified.'
+          : 'Are you sure you want to block this sitter? Their profile will be hidden and they will lose platform access.'
+        }
+        variant={confirmAction === 'APPROVED' ? 'primary' : 'danger'}
+        confirmText={
+          confirmAction === 'APPROVED' ? (sitter.status?.toLowerCase() === 'blocked' ? 'Unblock Sitter' : 'Approve Sitter')
+          : confirmAction === 'REJECTED' ? 'Reject Sitter'
+          : 'Block Sitter'
+        }
+        cancelText="Cancel"
+        isLoading={isUpdatingStatus}
+        onConfirm={() => {
+          if (confirmAction) handleUpdateStatus(confirmAction);
+        }}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   );
 
@@ -747,7 +780,7 @@ export const SitterDetails: React.FC<SitterDetailsProps> = ({
   if (id) {
     return (
       <div className="admin-wrapper">
-        <PremiumSidebar activeId="users" />
+        <PremiumSidebar activeId="dashboard" />
         <main className="admin-main" style={{ overflowY: 'auto', height: '100vh' }}>
           <div style={{ padding: '32px' }}>{detailContent}</div>
         </main>

@@ -22,6 +22,14 @@ export const API_ROUTES = {
     OWNER_STATUS: (id: string | number) => `${API_BASE_URL}/dashboard/owners/${id}/status`,
     OWNER_INFO: (id: string | number) => `${API_BASE_URL}/dashboard/owners/${id}`,
     OWNER_DELETE: (id: string | number) => `${API_BASE_URL}/dashboard/owners/${id}`,
-
+  },
+  USER_MANAGEMENT: {
+    BASE: `${API_BASE_URL}/user-management`,
+    SEND_OTP: `${API_BASE_URL}/user-management/send-otp`,
+    VERIFY_OTP: `${API_BASE_URL}/user-management/verify-otp`,
+    CREATE_USER: `${API_BASE_URL}/user-management`,
+    FETCH_ALL_USERS: `${API_BASE_URL}/user-management`,
+    UPDATE_USER: (id: string | number) => `${API_BASE_URL}/user-management/${id}`,
+    BY_ID: (id: string | number) => `${API_BASE_URL}/user-management/${id}`,
   }
 };

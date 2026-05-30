@@ -182,6 +182,10 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
 
   useEffect(() => {
     setCurrentView(initialView);
+    if (initialView !== 'dashboard') {
+      sessionStorage.removeItem('petbuddy_admin_tab');
+      setActiveTab('sitters');
+    }
   }, [initialView]);
   const [selectedSitter, setSelectedSitter] = useState<any | null>(null);
   const [selectedOwner, setSelectedOwner] = useState<any | null>(null);
@@ -314,12 +318,12 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
   };
 
   useEffect(() => {
-    if (activeTab === 'sitters') {
+    if (currentView === 'dashboard' && activeTab === 'sitters') {
       const controller = new AbortController();
       fetchSitters(controller.signal);
       return () => controller.abort();
     }
-  }, [activeTab, debouncedSitterSearch, appliedSitterFilter, sitterPage, sitterLimit]);
+  }, [currentView, activeTab, debouncedSitterSearch, appliedSitterFilter, sitterPage, sitterLimit]);
 
   const fetchOwners = async (signal?: AbortSignal) => {
     try {
@@ -427,12 +431,12 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
   };
 
   useEffect(() => {
-    if (activeTab === 'owners') {
+    if (currentView === 'dashboard' && activeTab === 'owners') {
       const controller = new AbortController();
       fetchOwners(controller.signal);
       return () => controller.abort();
     }
-  }, [activeTab, debouncedOwnerSearch, appliedOwnerFilter, ownerPage, ownerLimit]);
+  }, [currentView, activeTab, debouncedOwnerSearch, appliedOwnerFilter, ownerPage, ownerLimit]);
 
   // Stats are now fetched alongside sitters list
 
@@ -528,14 +532,8 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
 
   // Reusable style objects
   const badgeBase = { padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: '700' };
-  const searchInputStyle = { width: '100%', padding: '10px 12px 10px 36px', borderRadius: '25px', border: '1px solid var(--border)', fontSize: '0.95rem', background: 'var(--bg-card)' };
+  // const searchInputStyle = { width: '100%', padding: '10px 12px 10px 36px', borderRadius: '25px', border: '1px solid var(--border)', fontSize: '0.95rem', background: 'var(--bg-card)' };
 
-    // const navItems = [
-      
-    //   { id: 'dashboard', name: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
-    //   { id: 'users', name: 'Users', path: '#', icon: Users },
-    //   { id: 'bookings', name: 'Bookings', path: '/admin/bookings', icon: Calendar },
-    // ];
 
   return (
     <div className="admin-wrapper">
@@ -647,18 +645,19 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
                       </div>
                     </div>
 
-                    {/* Search & Filter Container aligned to the right */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', marginBottom: '16px', marginTop: '16px', position: 'relative' }}>
-                      <div style={{ position: 'relative', width: '300px' }}>
-                        <Search size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-                        <input
-                          type="text"
-                          placeholder="Search Name, Email, Phone..."
-                          value={ownerSearch}
-                          onChange={e => setOwnerSearch(e.target.value)}
-                          style={{ ...searchInputStyle, paddingLeft: '36px' }}
-                        />
-                      </div>
+                    <div className="glass-panel" style={{ animation: 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)', marginBottom: '32px' }}>
+                      {/* Search & Filter Container aligned to the right */}
+                      <div className="panel-controls" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', position: 'relative' }}>
+                        <div className="search-wrapper">
+                          <Search size={18} className="input-icon" />
+                          <input
+                            type="text"
+                            className="modern-input"
+                            placeholder="Search Name, Email, Phone..."
+                            value={ownerSearch}
+                            onChange={e => setOwnerSearch(e.target.value)}
+                          />
+                        </div>
                       
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <button 
@@ -864,7 +863,7 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
                                   </td>
                                   <td style={{ textAlign: 'right' }}>
                                     <div style={{ display: 'inline-flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                      <button onClick={() => navigate(`/admin/owners/${owner._id || owner.id}`)} className="page-btn" style={{ padding: '6px 10px' }} title="View Details"><Eye size={16} /></button>
+                                      <button onClick={() => navigate(`/admin/owners/${owner._id || owner.id}`)} className="page-btn" style={{ padding: '6px 16px' }} title="View Details"><Eye size={16} /> View</button>
                                       <button onClick={() => handleToggleOwnerStatus(owner._id || owner.id, owner.status || 'ACTIVE')} className="page-btn" style={{ padding: '6px 10px', color: (!owner.status || owner.status === 'ACTIVE') ? '#e11d48' : '#059669' }} title={(!owner.status || owner.status === 'ACTIVE') ? 'Block Owner' : 'Unblock Owner'}><Ban size={16} /></button>
                                       <button onClick={() => handleDeleteOwner(owner._id || owner.id)} className="page-btn" style={{ padding: '6px 10px', color: '#e11d48' }} title="Delete Owner"><Trash2 size={16} /></button>
                                     </div>
@@ -921,6 +920,7 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
                         )}
                       </>
                     )}
+                    </div>
                   </>
                 )}
 
@@ -1000,18 +1000,19 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
                       </div>
                     </div>
 
-                    {/* Search & Filter Container aligned to the right */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', marginBottom: '16px', position: 'relative' }}>
-                      <div style={{ position: 'relative', width: '300px' }}>
-                        <Search size={18} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-                        <input
-                          type="text"
-                          placeholder="Search Name, Email, Phone..."
-                          value={sitterSearch}
-                          onChange={e => setSitterSearch(e.target.value)}
-                          style={{ ...searchInputStyle, paddingLeft: '36px' }}
-                        />
-                      </div>
+                    <div className="glass-panel" style={{ animation: 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)', marginBottom: '32px' }}>
+                      {/* Search & Filter Container aligned to the right */}
+                      <div className="panel-controls" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '12px', position: 'relative' }}>
+                        <div className="search-wrapper">
+                          <Search size={18} className="input-icon" />
+                          <input
+                            type="text"
+                            className="modern-input"
+                            placeholder="Search Name, Email, Phone..."
+                            value={sitterSearch}
+                            onChange={e => setSitterSearch(e.target.value)}
+                          />
+                        </div>
                       
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <button 
@@ -1221,7 +1222,7 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
                                   </td>
                                   <td style={{ textAlign: 'right' }}>
                                     <div style={{ display: 'inline-flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                      <button onClick={() => handleViewSitterDetails(sitter.id || sitter._id)} className="page-btn" style={{ padding: '6px 12px' }} title="View Sitter Details"><Eye size={16} /> View Details</button>
+                                      <button onClick={() => handleViewSitterDetails(sitter.id || sitter._id)} className="page-btn" style={{ padding: '6px 16px' }} title="View Sitter Details"><Eye size={16} /> View</button>
                                     </div>
                                   </td>
                                 </tr>
@@ -1276,6 +1277,7 @@ const AdminDashboard: React.FC<{ initialView?: 'dashboard' | 'users' | 'bookings
                         )}
                       </>
                     )}
+                    </div>
                   </>
                 )}
               </>

@@ -34,25 +34,7 @@
   --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-main: #0b0f19;        /* Rich dark navy slate */
-    --bg-card: #151c2c;
-    --border: #1e293b;
-    --primary-light: rgba(13, 148, 136, 0.12);
-    --secondary-light: rgba(245, 158, 11, 0.12);
-    
-    --text-main: #94a3b8;
-    --text-heading: #f8fafc;
-    --text-muted: #64748b;
-    
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
-    --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
-    --shadow-xl: 0 20px 35px -5px rgba(0, 0, 0, 0.45);
-    --shadow-premium: 0 30px 60px -15px rgba(0, 0, 0, 0.55);
-  }
-}
+
 
 * {
   box-sizing: border-box;
@@ -651,4 +633,9 @@ img {
   .auth-card {
     padding: 32px 24px;
   }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }

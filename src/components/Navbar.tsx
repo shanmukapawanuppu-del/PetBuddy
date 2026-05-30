@@ -42,14 +42,14 @@ const Navbar: React.FC = () => {
             <Link to="/home" className={`nav-link ${isActive('/home')}`}>Home</Link>
             <Link to="/caregivers" className={`nav-link ${isActive('/caregivers')}`}>Find Caregivers</Link>
             <Link to="/features" className={`nav-link ${isActive('/features')}`}>Features</Link>
-<Link to="/testimonials" className={`nav-link ${isActive('/testimonials')}`}>Reviews</Link>
-<Link to="/service" className={`nav-link ${isActive('/service')}`}>Service</Link>
-<Link to="/admin/bookings" className={`nav-link ${isActive('/admin/bookings')}`}>Bookings</Link>
-<Link to="/login" className={`nav-link ${isActive('/login')}`}>Login</Link>
-{/* <Link to="/login" className={`nav-link ${isActive('/login')}`}>Login / Signup</Link> */}
-<Link to="/caregivers" className="btn btn-primary btn-nav">
-  Find a Pet Sitter
-</Link>
+            <Link to="/testimonials" className={`nav-link ${isActive('/testimonials')}`}>Reviews</Link>
+            <Link to="/service" className={`nav-link ${isActive('/service')}`}>Service</Link>
+            <Link to="/admin/bookings" className={`nav-link ${isActive('/admin/bookings')}`}>Bookings</Link>
+            <Link to="/login" className={`nav-link ${isActive('/login')}`}>Login</Link>
+            {/* <Link to="/login" className={`nav-link ${isActive('/login')}`}>Login / Signup</Link> */}
+            <Link to="/caregivers" className="btn btn-primary btn-nav">
+              Find a Pet Sitter
+            </Link>
           </nav>
 
           <button className="mobile-toggle" onClick={toggleMenu} aria-label="Toggle Menu">

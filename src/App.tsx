@@ -17,6 +17,7 @@ import NotFound from './pages/NotFound';
 
 // Admin Components & Pages
 import { AdminAuthProvider } from './components/admin/AdminAuthContext';
+import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import AdminSignup from './pages/admin/AdminSignup';
 import AdminLogin from './pages/admin/AdminLogin';
@@ -24,6 +25,8 @@ import AdminForgotPassword from './pages/admin/AdminForgotPassword';
 import AdminResetPassword from './pages/admin/AdminResetPassword';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminBookings from './pages/admin/AdminBookings';
+import AdminSettings from './pages/admin/AdminSettings';
+import AdminProfile from './pages/admin/AdminProfile';
 
 import { SitterDetails } from './pages/admin/SitterDetails';
 import { OwnerDetails } from './pages/admin/OwnerDetails';
@@ -64,6 +67,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 const App: React.FC = () => {
   return (
+    <ToastProvider>
     <Router>
       <ScrollToTop />
       
@@ -95,6 +99,8 @@ const App: React.FC = () => {
             <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboard initialView="dashboard" /></AdminLayout>} />
             <Route path="/admin/users" element={<AdminLayout><AdminDashboard initialView="users" /></AdminLayout>} />
             <Route path="/admin/bookings" element={<AdminLayout><AdminBookings /></AdminLayout>} />
+            <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
+            <Route path="/admin/profile" element={<AdminLayout><AdminProfile /></AdminLayout>} />
             {/* Future Admin Routes will go here */}
             <Route path="/admin/sitters/:id" element={<AdminLayout><SitterDetails /></AdminLayout>} />
             <Route path="/admin/owners/:id" element={<AdminLayout><OwnerDetails /></AdminLayout>} />
@@ -117,6 +123,7 @@ const App: React.FC = () => {
         }
       `}</style>
     </Router>
+    </ToastProvider>
   );
 };
 

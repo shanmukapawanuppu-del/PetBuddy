@@ -97,6 +97,7 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
     localStorage.removeItem('petbuddy_admin_access_token');
     localStorage.removeItem('petbuddy_admin_refresh_token');
     localStorage.removeItem('petbuddy_admin_account');
+    sessionStorage.removeItem('petbuddy_admin_tab');
     
     setAdminUser(null);
     setIsAuthenticated(false);
