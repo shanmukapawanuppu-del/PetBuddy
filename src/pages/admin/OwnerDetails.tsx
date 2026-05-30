@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, Mail, Calendar, PawPrint, Star, Ban, CheckCircle, ChevronLeft, Loader2, XCircle, Clock, User, CalendarCheck } from 'lucide-react';
+import { Phone, Mail, Calendar, PawPrint, Ban, CheckCircle, ChevronLeft, Loader2, XCircle, User, CalendarCheck } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ConfirmModal } from '../../components/admin/ConfirmModal';
 import { API_ROUTES } from '../../constants/apiConstants';
@@ -43,7 +43,7 @@ const SafeImage = ({ src, alt, fallbackName }: { src: string, alt: string, fallb
 export const OwnerDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   const [fetchedData, setFetchedData] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,7 +56,7 @@ export const OwnerDetails: React.FC = () => {
       setLoading(false);
       return;
     }
-    
+
     const fetchFullDetails = async () => {
       try {
         setLoading(true);
@@ -94,7 +94,7 @@ export const OwnerDetails: React.FC = () => {
         },
         body: JSON.stringify({ status: newStatus })
       });
-      
+
       if (response.ok) {
         setFetchedData((prev: any) => prev ? { ...prev, status: newStatus } : prev);
       } else {
@@ -153,12 +153,12 @@ export const OwnerDetails: React.FC = () => {
       ) : (
         <>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
-            <button 
-              onClick={() => navigate(-1)} 
-              style={{ 
-                display: 'inline-flex', alignItems: 'center', gap: '8px', 
-                background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.8)', 
-                color: 'var(--text-heading)', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer', 
+            <button
+              onClick={() => navigate(-1)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '8px',
+                background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.8)',
+                color: 'var(--text-heading)', fontSize: '0.9rem', fontWeight: '700', cursor: 'pointer',
                 padding: '12px 20px', borderRadius: '30px', transition: 'all 0.2s',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
               }}
@@ -173,31 +173,31 @@ export const OwnerDetails: React.FC = () => {
           </div>
 
           {/* BENTO BOX GRID */}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(12, 1fr)', 
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(12, 1fr)',
             gridAutoRows: 'minmax(200px, auto)',
-            gap: '24px' 
+            gap: '24px'
           }}>
-            
+
             {/* HERO IDENTITY BLOCK (Span 4 cols, 2 rows) */}
             <div style={{ ...bentoCardStyle, gridColumn: 'span 4', gridRow: 'span 2', alignItems: 'center', textAlign: 'center', background: 'linear-gradient(180deg, rgba(13, 148, 136, 0.08) 0%, #ffffff 50%)', justifyContent: 'center', padding: '40px', gap: '32px' }}>
-              
+
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                <div style={{ 
-                  width: '200px', height: '200px', borderRadius: '50%', backgroundColor: 'white', 
+                <div style={{
+                  width: '200px', height: '200px', borderRadius: '50%', backgroundColor: 'white',
                   border: '8px solid white', boxShadow: '0 24px 48px rgba(13, 148, 136, 0.15)', overflow: 'hidden',
                   marginBottom: '24px', position: 'relative', zIndex: 2
                 }}>
                   <SafeImage src={formatImageSrc(owner.profilePicture)} alt="avatar" fallbackName={getOwnerName(owner)} />
                 </div>
-                
+
                 <h1 style={{ margin: '0 0 12px 0', fontSize: '2.4rem', fontWeight: '800', color: 'var(--text-heading)', letterSpacing: '-0.5px' }}>
                   {getOwnerName(owner)}
                 </h1>
-                
-                <div style={{ 
-                  display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', 
+
+                <div style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem',
                   padding: '8px 24px', borderRadius: '30px', fontWeight: '800', marginBottom: '16px',
                   backgroundColor: owner.status?.toLowerCase() === 'blocked' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
                   color: owner.status?.toLowerCase() === 'blocked' ? 'var(--danger)' : 'var(--success)'
@@ -213,8 +213,8 @@ export const OwnerDetails: React.FC = () => {
 
               <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
                 {owner.status?.toLowerCase() !== 'blocked' ? (
-                  <button 
-                    onClick={() => setConfirmAction('BLOCK')} 
+                  <button
+                    onClick={() => setConfirmAction('BLOCK')}
                     style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', borderRadius: '20px', fontWeight: '700', fontSize: '1rem', backgroundColor: '#ef4444', color: 'white', border: 'none', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 8px 20px rgba(239, 68, 68, 0.3)' }}
                     onMouseOver={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
                     onMouseOut={e => (e.currentTarget.style.transform = 'translateY(0)')}
@@ -222,8 +222,8 @@ export const OwnerDetails: React.FC = () => {
                     <Ban size={18} /> Block Account
                   </button>
                 ) : (
-                  <button 
-                    onClick={() => setConfirmAction('UNBLOCK')} 
+                  <button
+                    onClick={() => setConfirmAction('UNBLOCK')}
                     style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', borderRadius: '20px', fontWeight: '700', fontSize: '1rem', backgroundColor: 'var(--success)', color: 'white', border: 'none', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)' }}
                     onMouseOver={e => (e.currentTarget.style.transform = 'translateY(-2px)')}
                     onMouseOut={e => (e.currentTarget.style.transform = 'translateY(0)')}
@@ -266,7 +266,7 @@ export const OwnerDetails: React.FC = () => {
               <div style={{ fontSize: '3.5rem', fontWeight: '800', color: 'var(--primary)', lineHeight: 1, marginBottom: '12px' }}>{owner.pets?.length || 0}</div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>Pets</div>
             </div>
-            
+
             <div style={{ ...bentoCardStyle, gridColumn: 'span 2', alignItems: 'center', justifyContent: 'center', textAlign: 'center', background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.02))' }}>
               <div style={{ fontSize: '3.5rem', fontWeight: '800', color: 'var(--secondary)', lineHeight: 1, marginBottom: '12px' }}>{owner.bookings || 0}</div>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>Bookings</div>
@@ -310,7 +310,7 @@ export const OwnerDetails: React.FC = () => {
                 {owner.emergencyContact?.name && (
                   <div style={{ padding: '20px', background: 'rgba(239, 68, 68, 0.05)', borderRadius: '20px', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
                     <span style={{ fontSize: '0.75rem', color: 'var(--danger)', fontWeight: '800', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px', letterSpacing: '0.5px' }}>
-                       Emergency Contact
+                      Emergency Contact
                     </span>
                     <div style={{ color: 'var(--danger)', fontWeight: '800', fontSize: '1.1rem' }}>{owner.emergencyContact.name} <span style={{ opacity: 0.7, fontWeight: '600', fontSize: '0.9rem' }}>({owner.emergencyContact.relation || 'Relation'})</span></div>
                     <div style={{ color: 'var(--danger)', fontSize: '1rem', marginTop: '4px', fontWeight: '600' }}>{owner.emergencyContact.phoneNumber}</div>
@@ -331,7 +331,7 @@ export const OwnerDetails: React.FC = () => {
                     display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s', marginBottom: '-2px'
                   }}
                 >
-                  <PawPrint size={24} color={activeTab === 'pets' ? 'var(--text-heading)' : 'var(--text-muted)'} /> 
+                  <PawPrint size={24} color={activeTab === 'pets' ? 'var(--text-heading)' : 'var(--text-muted)'} />
                   Registered Pets
                   <span style={{ background: activeTab === 'pets' ? 'var(--primary-light)' : 'rgba(0,0,0,0.05)', color: activeTab === 'pets' ? 'var(--primary)' : 'var(--text-muted)', padding: '4px 12px', borderRadius: '30px', fontSize: '0.8rem', fontWeight: '800' }}>
                     {owner.pets?.length || 0} Total
@@ -346,7 +346,7 @@ export const OwnerDetails: React.FC = () => {
                     display: 'flex', alignItems: 'center', gap: '12px', transition: 'all 0.2s', marginBottom: '-2px'
                   }}
                 >
-                  <CalendarCheck size={24} color={activeTab === 'bookings' ? 'var(--secondary)' : 'var(--text-muted)'} /> 
+                  <CalendarCheck size={24} color={activeTab === 'bookings' ? 'var(--secondary)' : 'var(--text-muted)'} />
                   Recent Bookings
                   <span style={{ background: activeTab === 'bookings' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(0,0,0,0.05)', color: activeTab === 'bookings' ? 'var(--secondary)' : 'var(--text-muted)', padding: '4px 12px', borderRadius: '30px', fontSize: '0.8rem', fontWeight: '800' }}>
                     0 Total
@@ -358,13 +358,13 @@ export const OwnerDetails: React.FC = () => {
                 Array.isArray(owner.pets) && owner.pets.length > 0 ? (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
                     {owner.pets.map((pet: any, idx: number) => (
-                      <div key={idx} style={{ 
-                        background: 'white', borderRadius: '24px', padding: '24px', border: '1px solid rgba(0,0,0,0.03)', 
+                      <div key={idx} style={{
+                        background: 'white', borderRadius: '24px', padding: '24px', border: '1px solid rgba(0,0,0,0.03)',
                         boxShadow: '0 10px 30px rgba(0,0,0,0.03)', display: 'flex', gap: '24px', alignItems: 'center',
                         transition: 'transform 0.2s', cursor: 'pointer'
                       }}
-                      onMouseOver={e => (e.currentTarget.style.transform = 'translateY(-4px)')}
-                      onMouseOut={e => (e.currentTarget.style.transform = 'translateY(0)')}
+                        onMouseOver={e => (e.currentTarget.style.transform = 'translateY(-4px)')}
+                        onMouseOut={e => (e.currentTarget.style.transform = 'translateY(0)')}
                       >
                         <div style={{ width: '90px', height: '90px', borderRadius: '24px', overflow: 'hidden', flexShrink: 0 }}>
                           <SafeImage src={formatImageSrc(pet.photo)} alt={pet.name} fallbackName={pet.name || 'Pet'} />
@@ -398,16 +398,16 @@ export const OwnerDetails: React.FC = () => {
                 </div>
               )}
             </div>
-            
+
           </div>
         </>
       )}
-      
+
       <ConfirmModal
         isOpen={confirmAction !== null}
         title={confirmAction === 'BLOCK' ? 'Block Owner' : 'Unblock Owner'}
         message={
-          confirmAction === 'BLOCK' 
+          confirmAction === 'BLOCK'
             ? 'Are you sure you want to block this pet owner? They will no longer be able to use the platform.'
             : 'Are you sure you want to unblock this pet owner? They will regain access to the platform.'
         }

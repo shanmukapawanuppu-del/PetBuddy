@@ -1,28 +1,25 @@
 import React, { useState } from 'react';
-import { useAdminAuth } from '../../components/admin/AdminAuthContext';
+// import { useAdminAuth } from '../../components/admin/AdminAuthContext';
 import PremiumSidebar from '../../components/admin/PremiumSidebar';
-import { 
-  User, 
-  Edit2, 
-  KeyRound, 
-  Eye, 
-  EyeOff, 
-  Bell, 
-  TicketPercent, 
+import {
+  KeyRound,
+  Eye,
+  EyeOff,
+  Bell,
   Info
 } from 'lucide-react';
 import '../../components/admin/PremiumTable.css';
 
 const AdminSettings: React.FC = () => {
-  const { adminUser } = useAdminAuth();
-  
-  // Profile State
-  const [profile, setProfile] = useState({
-    fullName: adminUser?.fullName || 'SaiKrishna Mateti',
-    email: adminUser?.email || 'sai.mateti@petbuddy.',
-    phone: '+91 98765 43210',
-    role: 'Super Admin'
-  });
+  // const { adminUser } = useAdminAuth();
+
+  // // Profile State
+  // const [profile] = useState({
+  //   fullName: adminUser?.fullName || 'SaiKrishna Mateti',
+  //   email: adminUser?.email || 'sai.mateti@petbuddy.',
+  //   phone: '+91 98765 43210',
+  //   role: 'Super Admin'
+  // });
 
   // Security State
   const [passwords, setPasswords] = useState({
@@ -56,15 +53,6 @@ const AdminSettings: React.FC = () => {
     bookingAlerts: true
   });
 
-  // Commission State
-  const [commission, setCommission] = useState('15');
-
-  // Handlers
-  const handleProfileSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Saving profile...', profile);
-  };
-
   const handlePasswordUpdate = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Updating password...');
@@ -74,17 +62,12 @@ const AdminSettings: React.FC = () => {
     console.log('Saving preferences...', notifications);
   };
 
-  const handleCommissionUpdate = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Updating commission to...', commission);
-  };
-
   return (
     <div className="premium-dashboard">
       <PremiumSidebar activeId="settings" />
       <main className="dashboard-main" style={{ backgroundColor: '#eef4f9' }}>
         <div className="dashboard-content" style={{ width: '100%', maxWidth: '1400px', margin: '0 auto', padding: '40px' }}>
-          
+
           {/* Header */}
           <div style={{ marginBottom: '32px' }}>
             <h1 style={{ fontSize: '2.2rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.02em', margin: '0 0 6px 0' }}>
@@ -97,10 +80,10 @@ const AdminSettings: React.FC = () => {
 
           {/* Grid Layout Container */}
           <div className="settings-grid-layout">
-            
+
             {/* LEFT COLUMN */}
             <div className="settings-col-left">
-              
+
               {/* Left Column now starts with Security & Password */}
               {/* 2. Security & Password Card */}
               <div className="settings-card">
@@ -115,10 +98,10 @@ const AdminSettings: React.FC = () => {
                   <div className="settings-input-group full-width">
                     <label>CURRENT PASSWORD</label>
                     <div className="password-input-wrapper">
-                      <input 
-                        type={showCurrent ? "text" : "password"} 
-                        value={passwords.current} 
-                        onChange={e => setPasswords({...passwords, current: e.target.value})} 
+                      <input
+                        type={showCurrent ? "text" : "password"}
+                        value={passwords.current}
+                        onChange={e => setPasswords({ ...passwords, current: e.target.value })}
                       />
                       <button type="button" className="eye-btn" onClick={() => setShowCurrent(!showCurrent)}>
                         {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -130,8 +113,8 @@ const AdminSettings: React.FC = () => {
                     <div className="settings-input-group">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <label style={{ margin: 0 }}>NEW PASSWORD</label>
-                        <div 
-                          onMouseEnter={() => setShowPasswordInfo(true)} 
+                        <div
+                          onMouseEnter={() => setShowPasswordInfo(true)}
                           onMouseLeave={() => setShowPasswordInfo(false)}
                           style={{ position: 'relative', display: 'flex', alignItems: 'center', color: '#94a3b8', cursor: 'help' }}
                         >
@@ -151,10 +134,10 @@ const AdminSettings: React.FC = () => {
                         </div>
                       </div>
                       <div className="password-input-wrapper">
-                        <input 
-                          type={showNew ? "text" : "password"} 
-                          value={passwords.newPass} 
-                          onChange={e => setPasswords({...passwords, newPass: e.target.value})} 
+                        <input
+                          type={showNew ? "text" : "password"}
+                          value={passwords.newPass}
+                          onChange={e => setPasswords({ ...passwords, newPass: e.target.value })}
                         />
                         <button type="button" className="eye-btn" onClick={() => setShowNew(!showNew)}>
                           {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -174,10 +157,10 @@ const AdminSettings: React.FC = () => {
                     <div className="settings-input-group">
                       <label>CONFIRM NEW PASSWORD</label>
                       <div className="password-input-wrapper">
-                        <input 
-                          type={showConfirm ? "text" : "password"} 
-                          value={passwords.confirm} 
-                          onChange={e => setPasswords({...passwords, confirm: e.target.value})} 
+                        <input
+                          type={showConfirm ? "text" : "password"}
+                          value={passwords.confirm}
+                          onChange={e => setPasswords({ ...passwords, confirm: e.target.value })}
                         />
                         <button type="button" className="eye-btn" onClick={() => setShowConfirm(!showConfirm)}>
                           {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -200,7 +183,7 @@ const AdminSettings: React.FC = () => {
 
             {/* RIGHT COLUMN */}
             <div className="settings-col-right">
-              
+
               {/* 3. Notifications Card */}
               <div className="settings-card">
                 <div className="card-header-row">
@@ -219,7 +202,7 @@ const AdminSettings: React.FC = () => {
                       reviewAlerts: { title: 'Review alerts', desc: 'New sitter reviews' },
                       bookingAlerts: { title: 'Booking alerts', desc: 'New transaction logs' }
                     };
-                    
+
                     return (
                       <div key={key} className="notification-item">
                         <div className="notification-text">
@@ -227,10 +210,10 @@ const AdminSettings: React.FC = () => {
                           <div className="notif-desc">{contentMap[key].desc}</div>
                         </div>
                         <label className="design-toggle">
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             checked={value}
-                            onChange={(e) => setNotifications({...notifications, [key]: e.target.checked})}
+                            onChange={(e) => setNotifications({ ...notifications, [key]: e.target.checked })}
                           />
                           <span className="design-slider"></span>
                         </label>
@@ -238,7 +221,7 @@ const AdminSettings: React.FC = () => {
                     );
                   })}
                 </div>
-                
+
                 <button onClick={handlePreferencesSave} className="pale-blue-btn full-width-btn">
                   Save Preferences
                 </button>
